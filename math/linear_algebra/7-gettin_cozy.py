@@ -7,9 +7,9 @@ def cat_matrices2D(mat1, mat2, axis=0):
     Args:
         mat1: A 2D list of ints/floats
         mat2: A 2D list of ints/floats
-        axis: 0 to concatenate vertically (rows), 1 to concatenate horizontally (columns)
+        axis: 0 to concatenate vertically (rows)
     Returns:
-        A new concatenated matrix, or None if matrices cannot be concatenated
+        A new concatenated matrix, or None if matrices 
     """
     if axis == 0:
         if len(mat1[0]) != len(mat2[0]):
