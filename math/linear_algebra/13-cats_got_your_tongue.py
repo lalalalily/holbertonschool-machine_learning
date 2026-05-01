@@ -8,7 +8,7 @@ def np_cat(mat1, mat2, axis=0):
     Args:
         mat1: A numpy.ndarray
         mat2: A numpy.ndarray
-        axis: 0 to concatenate vertically (rows), 1 to concatenate horizontally (columns)
+        axis: 0 to concatenate vertically (rows)
     Returns:
         A new concatenated numpy.ndarray
     """
