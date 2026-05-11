@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+"""Module to calculate posterior probability of binomial data"""
 import numpy as np
 
 
 def posterior(x, n, P, Pr):
     """
-    Calculates the posterior probability for various hypothetical probabilities.
+    Calculates the posterior probability for various hypothetical
+    probabilities of developing severe side effects given the data
     """
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
