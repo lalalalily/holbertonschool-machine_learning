@@ -4,11 +4,12 @@ import numpy as np
 
 
 def intersection(x, n, P, Pr):
-    """Calculates intersection """
+    """Calculates intersection for probabilities in P"""
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
     if not isinstance(x, int) or x < 0:
-        raise ValueError("x must be an integer that is greater than or equal to 0")
+        msg = "x must be an integer that is greater than or equal to 0"
+        raise ValueError(msg)
     if x > n:
         raise ValueError("x cannot be greater than n")
     if not isinstance(P, np.ndarray) or len(P.shape) != 1:
@@ -21,10 +22,9 @@ def intersection(x, n, P, Pr):
         raise ValueError("All values in Pr must be in the range [0, 1]")
     if not np.isclose(np.sum(Pr), 1):
         raise ValueError("Pr must sum to 1")
-    # Binomial Coefficient calculation
+
     fact = np.math.factorial
     n_cr = fact(n) / (fact(x) * fact(n - x))
-    # Likelihood: P(Data | Hypothesis)
     l_hood = n_cr * (P ** x) * ((1 - P) ** (n - x))
-    # Intersection: Likelihood * Prior
+
     return l_hood * Pr
