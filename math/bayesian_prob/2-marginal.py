@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Module to calculate intersection of binomial data and priors"""
 import numpy as np
 
 
