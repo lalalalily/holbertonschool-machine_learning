@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
-"""Module containing the Poisson class to represent a Poisson distribution."""
+"""Module for Poisson distribution"""
 
 
 class Poisson:
-    """Represents a Poisson distribution."""
-
+    """Represents a Poisson distribution"""
     def __init__(self, data=None, lambtha=1.):
-        """Class constructor for Poisson distribution.        """
+        """Initializes the distribution"""
         if data is None:
-            # Case 1: No data provided, use the given lambtha
             if lambtha <= 0:
                 raise ValueError("lambtha must be a positive value")
             self.lambtha = float(lambtha)
         else:
-            # Case 2: Data provided, estimate lambtha from the list
             if not isinstance(data, list):
                 raise TypeError("data must be a list")
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
-            # Calculate mean of the data (lambtha)
             self.lambtha = float(sum(data) / len(data))
+    def pmf(self, k):
+        """Calculates PMF for k successes"""
+        k = int(k)
+        if k < 0:
+            return 0
+        # Constants and Factorial
+        e, lambtha, fact = 2.7182818285, self.lambtha, 1
+        for i in range(1, k + 1):
+            fact *= i 
+        return (e ** -lambtha * lambtha ** k) / fact
