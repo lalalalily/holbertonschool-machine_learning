@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
-"""Module to calculate intersection of binomial data and priors"""
+"""Module to calculate marginal probability of binomial data"""
 import numpy as np
 
 
 def marginal(x, n, P, Pr):
+    """
+    Calculates the marginal probability of obtaining the data
+    Args:
+        x: number of patients that develop severe side effects
+        n: total number of patients observed
+        P: 1D numpy.ndarray of hypothetical probabilities
+        Pr: 1D numpy.ndarray of prior beliefs of P
+    Returns:
+        the marginal probability of obtaining x and n
+    """
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
     if not isinstance(x, int) or x < 0:
-        value = "x must be an integer that is greater than or equal to 0"
-        raise ValueError(value)
+        msg = "x must be an integer that is greater than or equal to 0"
+        raise ValueError(msg)
     if x > n:
         raise ValueError("x cannot be greater than n")
     if not isinstance(P, np.ndarray) or len(P.shape) != 1:
@@ -21,9 +31,7 @@ def marginal(x, n, P, Pr):
         raise ValueError("All values in Pr must be in the range [0, 1]")
     if not np.isclose(np.sum(Pr), 1):
         raise ValueError("Pr must sum to 1")
-
     fact = np.math.factorial
     n_cr = fact(n) / (fact(x) * fact(n - x))
     l_hood = n_cr * (P ** x) * ((1 - P) ** (n - x))
-
     return np.sum(l_hood * Pr)
