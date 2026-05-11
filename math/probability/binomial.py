@@ -29,7 +29,7 @@ class Binomial:
         k = int(k)
         if k < 0 or k > self.n:
             return 0
-        
+
         def fact(n):
             """Helper for factorial"""
             f = 1
