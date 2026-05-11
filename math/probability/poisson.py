@@ -22,8 +22,17 @@ class Poisson:
         k = int(k)
         if k < 0:
             return 0
-        # Constants and Factorial
         e, lambtha, fact = 2.7182818285, self.lambtha, 1
         for i in range(1, k + 1):
             fact *= i
         return (e ** -lambtha * lambtha ** k) / fact
+
+    def cdf(self, k):
+        """Calculates CDF for k successes"""
+        k = int(k)
+        if k < 0:
+            return 0
+        cdf_value = 0
+        for i in range(k + 1):
+            cdf_value += self.pmf(i)
+        return cdf_value
