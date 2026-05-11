@@ -2,9 +2,9 @@
 import numpy as np
 
 
-def marginal(x, n, P, Pr):
+def posterior(x, n, P, Pr):
     """
-    Calculates the marginal probability of obtaining the data.
+    Calculates the posterior probability for various hypothetical probabilities.
     """
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
@@ -25,5 +25,7 @@ def marginal(x, n, P, Pr):
         raise ValueError("Pr must sum to 1")
     fact = np.math.factorial
     n_cr = fact(n) / (fact(x) * fact(n - x))
-    l_hood = n_cr * (P ** x) * ((1 - P) ** (n - x))
-    return np.sum(l_hood * Pr)
+    likelihood = n_cr * (P ** x) * ((1 - P) ** (n - x))
+    intersection = likelihood * Pr
+    marginal = np.sum(intersection)
+    return intersection / marginal
