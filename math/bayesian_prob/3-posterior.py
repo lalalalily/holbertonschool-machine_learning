@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Module to calculate intersection of binomial data and priors"""
 import numpy as np
 
 
-def posterior(x, n, P, Pr):
+def marginal(x, n, P, Pr):
+    """
+    Calculates the marginal probability of obtaining the data.
+    """
     if not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
     if not isinstance(x, int) or x < 0:
@@ -23,7 +25,5 @@ def posterior(x, n, P, Pr):
         raise ValueError("Pr must sum to 1")
     fact = np.math.factorial
     n_cr = fact(n) / (fact(x) * fact(n - x))
-    likelihood = n_cr * (P ** x) * ((1 - P) ** (n - x))
-    intersection = likelihood * Pr
-    marginal = np.sum(intersection)
-    return intersection / marginal
+    l_hood = n_cr * (P ** x) * ((1 - P) ** (n - x))
+    return np.sum(l_hood * Pr)
