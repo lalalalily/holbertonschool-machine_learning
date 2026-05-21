@@ -26,6 +26,6 @@ class MultiNormal:
             raise ValueError("x must have the shape ({}, 1)".format(d))
         diff = x - self.mean
         det = np.linalg.det(self.cov)
-        inv = np.linalg.inv(self.cov)
         denom = np.sqrt(((2 * np.pi) ** d) * det)
-        return float(np.exp(-0.5 * diff.T @ inv @ diff) / denom)
+        exponent = -0.5 * float(diff.T @ np.linalg.solve(self.cov, diff))
+        return float(np.exp(exponent) / denom)
