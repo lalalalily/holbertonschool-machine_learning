@@ -27,5 +27,7 @@ class MultiNormal:
         diff = x - self.mean
         det = np.linalg.det(self.cov)
         denom = np.sqrt(((2 * np.pi) ** d) * det)
-        exponent = -0.5 * float(diff.T @ np.linalg.solve(self.cov, diff))
+        # Using solve instead of inv minimizes floating point precision drifts
+        mahalanobis = diff.T @ np.linalg.solve(self.cov, diff)
+        exponent = -0.5 * mahalanobis[0, 0]
         return float(np.exp(exponent) / denom)
