@@ -1,33 +1,30 @@
 #!/usr/bin/env python3
 """
-Defines a function that fills missing values in a pd.DataFrame
+Defines a scatter plot visualization function for height and weight data
 """
+import numpy as np
+import matplotlib.pyplot as plt
 
 
-def fill(df):
+def scatter():
     """
-    Cleans and fills missing values in a cryptocurrency DataFrame
-    according to specific project rules.
-
-    Args:
-        df: The input DataFrame.
-
-    Returns:
-        The modified DataFrame with filled values.
+    Plots a scatter plot of Men's Height vs Weight using magenta points
+    and appropriate axis labeling.
     """
-    # 1. Remove the Weighted_Price column
-    df = df.drop(columns=['Weighted_Price'])
+    mean = [69, 0]
+    cov = [[15, 8], [8, 15]]
+    np.random.seed(5)
+    x, y = np.random.multivariate_normal(mean, cov, 2000).T
+    y += 180
+    plt.figure(figsize=(6.4, 4.8))
 
-    # 2. Missing values in Close set to the previous row value (forward fill)
-    df['Close'] = df['Close'].ffill()
+    # Plot the data points using magenta color
+    plt.scatter(x, y, color='m')
 
-    # 3. Missing values in High, Low, Open set to the same row's Close value
-    df['High'] = df['High'].fillna(df['Close'])
-    df['Low'] = df['Low'].fillna(df['Close'])
-    df['Open'] = df['Open'].fillna(df['Close'])
+    # Configure the titles and labels
+    plt.xlabel('Height (in)')
+    plt.ylabel('Weight (lbs)')
+    plt.title("Men's Height vs Weight")
 
-    # 4. Missing values in Volume columns set to 0
-    df['Volume_(BTC)'] = df['Volume_(BTC)'].fillna(0)
-    df['Volume_(Currency)'] = df['Volume_(Currency)'].fillna(0)
-
-    return df
+    # Render the visualization
+    plt.show()
