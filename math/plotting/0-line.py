@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 def line():
     """
-    Plots a line graph with a solid red line and x-axis ranging from 0 to 10
+    Plots a line graph with a solid red line and x-axis
     """
     y = np.arange(0, 11) ** 3
     plt.figure(figsize=(6.4, 4.8))
