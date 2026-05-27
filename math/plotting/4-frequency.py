@@ -15,4 +15,5 @@ def frequency():
     plt.title('Project A')
     plt.xlim(0, 100)
     plt.xticks(range(0, 101, 10))
-    plt.show()
+    plt.tight_layout()
+    plt.savefig('4-frequency.png')
