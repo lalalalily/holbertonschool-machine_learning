@@ -1,53 +1,40 @@
 #!/usr/bin/env python3
-"""
-Defines a function that plots a stacked bar chart of fruit distribution
-"""
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def fruits():
-    """
-    Plots a stacked bar chart of fruit consumption per person
-    with custom colors, widths, legends, and specific axis styling.
-    """
+def bars():
     np.random.seed(5)
-    fruit = np.random.randint(0, 20, (4, 3))
-    
-    # Assign fruit categories from the matrix rows
-    apples = fruit[0]
-    bananas = fruit[1]
-    oranges = fruit[2]
-    peaches = fruit[3]
-    
-    persons = ['Farrah', 'Fred', 'Felicia']
-    x = np.arange(len(persons))
-    width = 0.5
-
+    fruit = np.random.randint(0, 20, (4,3))
     plt.figure(figsize=(6.4, 4.8))
 
-    # Plot each fruit layer, stacking them on top of previous layers using 'bottom'
-    plt.bar(x, apples, width=width, color='red', label='apples')
-    plt.bar(x, bananas, width=width, bottom=apples,
-            color='yellow', label='bananas')
-    plt.bar(x, oranges, width=width, bottom=apples + bananas,
-            color='#ff8000', label='oranges')
-    plt.bar(x, peaches, width=width, bottom=apples + bananas + oranges,
-            color='#ffe5b4', label='peaches')
-
-    # Apply axis text and title formatting
-    plt.ylabel('Quantity of Fruit')
+    # --- Your Code Here ---
+    
+    # Define names for X-axis ticks
+    people = ['Farrah', 'Fred', 'Felicia']
+    
+    # Define fruit types, their hex colors, and tracking for the stack bottom
+    fruit_types = ['apples', 'bananas', 'oranges', 'peaches']
+    colors = ['red', 'yellow', '#ff8000', '#ffe5b4']
+    
+    # Initialize the bottom of the stack at zero for each person
+    bottoms = np.zeros(3)
+    
+    # Plot each row (fruit) stacked on top of the previous ones
+    for i in range(len(fruit)):
+        plt.bar(people, fruit[i], width=0.5, bottom=bottoms, color=colors[i], label=fruit_types[i])
+        bottoms += fruit[i] # Update the bottom position for the next layer
+        
+    # Set the title and labels
     plt.title('Number of Fruit per Person')
+    plt.ylabel('Quantity of Fruit')
     
-    # Configure horizontal axes ticks and names
-    plt.xticks(x, persons)
-    
-    # Force vertical axis boundaries between 0 and 80 with intervals of 10
+    # Set Y-axis range and step ticks
     plt.ylim(0, 80)
     plt.yticks(np.arange(0, 81, 10))
-
-    # Add the legend tracking categories
+    
+    # Display the legend
     plt.legend()
+    
+    # --- End of Code ---
 
-    # Render the final visualization layout
     plt.show()
