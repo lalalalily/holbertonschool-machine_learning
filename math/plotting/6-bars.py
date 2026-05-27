@@ -1,39 +1,53 @@
-6. Stacking Bars
-Complete the following source code to plot a stacked bar graph:
-
-fruit is a matrix representing the number of fruit various people possess
-The columns of fruit represent the number of fruit Farrah, Fred, and Felicia have, respectively
-The rows of fruit represent the number of apples, bananas, oranges, and peaches, respectively
-The bars should represent the number of fruit each person possesses:
-The bars should be grouped by person, i.e, the horizontal axis should have one labeled tick per person
-Each fruit should be represented by a specific color:
-apples = red
-bananas = yellow
-oranges = orange (#ff8000)
-peaches = peach (#ffe5b4)
-A legend should be used to indicate which fruit is represented by each color
-The bars should be stacked in the same order as the rows of fruit, from bottom to top
-The bars should have a width of 0.5
-The y-axis should be labeled Quantity of Fruit
-The y-axis should range from 0 to 80 with ticks every 10 units
-The title should be Number of Fruit per Person
-hbt-ml@Holberton-ML:~$ cat 6-bars.py
 #!/usr/bin/env python3
+"""
+Defines a function that plots a stacked bar chart of fruit distribution
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
-def bars():
+
+def fruits():
+    """
+    Plots a stacked bar chart of fruit consumption per person
+    with custom colors, widths, legends, and specific axis styling.
+    """
     np.random.seed(5)
-    fruit = np.random.randint(0, 20, (4,3))
+    fruit = np.random.randint(0, 20, (4, 3))
+    
+    # Assign fruit categories from the matrix rows
+    apples = fruit[0]
+    bananas = fruit[1]
+    oranges = fruit[2]
+    peaches = fruit[3]
+    
+    persons = ['Farrah', 'Fred', 'Felicia']
+    x = np.arange(len(persons))
+    width = 0.5
+
     plt.figure(figsize=(6.4, 4.8))
 
-    # your code here
-Result
+    # Plot each fruit layer, stacking them on top of previous layers using 'bottom'
+    plt.bar(x, apples, width=width, color='red', label='apples')
+    plt.bar(x, bananas, width=width, bottom=apples,
+            color='yellow', label='bananas')
+    plt.bar(x, oranges, width=width, bottom=apples + bananas,
+            color='#ff8000', label='oranges')
+    plt.bar(x, peaches, width=width, bottom=apples + bananas + oranges,
+            color='#ffe5b4', label='peaches')
 
-hbt-ml@Holberton-ML:~$ cat 6-main.py
-#!/usr/bin/env python3
+    # Apply axis text and title formatting
+    plt.ylabel('Quantity of Fruit')
+    plt.title('Number of Fruit per Person')
+    
+    # Configure horizontal axes ticks and names
+    plt.xticks(x, persons)
+    
+    # Force vertical axis boundaries between 0 and 80 with intervals of 10
+    plt.ylim(0, 80)
+    plt.yticks(np.arange(0, 81, 10))
 
-bars = __import__('6-bars').bars
+    # Add the legend tracking categories
+    plt.legend()
 
-bars()
-hbt-ml@Holberton-ML:~$ ./6-main.py
+    # Render the final visualization layout
+    plt.show()
