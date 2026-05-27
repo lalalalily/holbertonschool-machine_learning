@@ -21,4 +21,4 @@ def line():
 
     # Display the final graph layout
     plt.show()
-    
+ 
