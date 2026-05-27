@@ -10,24 +10,19 @@ def frequency():
     student_grades = np.random.normal(68, 15, 50)
     plt.figure(figsize=(6.4, 4.8))
 
-    # Define the bins every 10 units (from 0 to 100 based on typical grades)
-    # np.arange(0, 101, 10) creates: [0, 10, 20, ..., 100]
+    # Bins every 10 units. Since grades naturally fall between 0 and 100, 
+    # we define the bins range to cover the data.
     bins = np.arange(0, 101, 10)
 
-    # Plot the histogram with black outlines around the bars
+    # Plot histogram with black outlines
     plt.hist(student_grades, bins=bins, edgecolor='black')
 
-    # Set X and Y axis labels
+    # Label the axes and title exactly as requested
     plt.xlabel('Grades')
     plt.ylabel('Number of Students')
-
-    # Explicitly set the X-axis ticks to match the 10-unit bins
-    plt.xticks(bins)
-  
-    # Ensure the X-axis view limits tightly wrap around the bin range
-    plt.xlim(0, 100)
-
-    # Set the title
     plt.title('Project A')
+    
+    # Explicitly bound X-axis to the exact bin limits to avoid clipping/extra whitespace
+    plt.xlim(0, 100)
 
     plt.show()
