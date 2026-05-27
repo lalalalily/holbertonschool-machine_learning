@@ -16,8 +16,8 @@ def bars():
     bottoms = np.zeros(3)
     # Plot each row (fruit) stacked on top of the previous ones
     for i in range(len(fruit)):
-        plt.bar(people, fruit[i], width=0.5, bottom=bottoms, 
-        \color=colors[i], label=fruit_types[i])
+        plt.bar(people, fruit[i], width=0.5, bottom=bottoms, \
+        color=colors[i], label=fruit_types[i])
         bottoms += fruit[i] # Update the bottom position 
     # Set the title and labels
     plt.title('Number of Fruit per Person')
