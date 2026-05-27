@@ -6,6 +6,6 @@ Module to calculate clean descriptive statistics for a DataFrame.
 
 def analyze(df):
     """
-    Computes descriptive statistics for all columns except the Timestamp column.
+    Computes descriptive stats for all columns except the Timestamp.
     """
     return df.drop(columns=['Timestamp']).describe()

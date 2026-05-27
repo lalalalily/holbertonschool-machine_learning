@@ -12,11 +12,11 @@ def hierarchy(df1, df2):
     """
     df1 = index(df1)
     df2 = index(df2)
-    
-    df1_filtered = df1.loc[(df1.index >= 1417411980) & (df1.index <= 1417417980)]
-    df2_filtered = df2.loc[(df2.index >= 1417411980) & (df2.index <= 1417417980)]
-    
-    df = pd.concat([df2_filtered, df1_filtered], keys=['bitstamp', 'coinbase'])
+
+    df1_filt = df1.loc[(df1.index >= 1417411980) & (df1.index <= 1417417980)]
+    df2_filt = df2.loc[(df2.index >= 1417411980) & (df2.index <= 1417417980)]
+
+    df = pd.concat([df2_filt, df1_filt], keys=['bitstamp', 'coinbase'])
     df = df.swaplevel(0, 1)
     df = df.sort_index(level=0)
     return df
