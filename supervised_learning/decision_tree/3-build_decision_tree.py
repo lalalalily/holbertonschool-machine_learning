@@ -7,6 +7,7 @@ import numpy as np
 
 class Node:
     """Represents a node in a decision tree"""
+
     def __init__(self, feature=None, threshold=None, left_child=None,
                  right_child=None, is_root=False, depth=0):
         """Initializes a node"""
@@ -52,24 +53,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + "\n"
         return new_text
 
     def __str__(self):
@@ -99,6 +94,7 @@ class Node:
 
 class Leaf(Node):
     """Represents a leaf node in a decision tree"""
+
     def __init__(self, value, depth=None):
         """Initializes a leaf node"""
         super().__init__()
@@ -125,6 +121,7 @@ class Leaf(Node):
 
 class Decision_Tree():
     """Represents a decision tree"""
+
     def __init__(self, max_depth=10, min_pop=1, seed=0,
                  split_criterion="random", root=None):
         """Initializes a decision tree"""
