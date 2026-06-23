@@ -49,8 +49,9 @@ class Random_Forest():
     - Mean depth                     : {np.array(depths).mean()}
     - Mean number of nodes           : {np.array(nodes).mean()}
     - Mean number of leaves          : {np.array(leaves).mean()}
-    - Mean  on training data : {np.array(accuracies).mean()}
-    - Accuracy o on td   : {self.accuracy(self.explanatory, self.target)}""")
+    - Mean accuracy on training data : {np.array(accuracies).mean()}""")
+            print("    - Accuracy of the forest on td   :"
+                  f" {self.accuracy(self.explanatory, self.target)}")
 
     def predict(self, explanatory):
         preds = np.array([pred(explanatory) for pred in self.numpy_preds])
