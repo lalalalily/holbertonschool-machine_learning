@@ -120,7 +120,7 @@ class Node:
             ]), axis=0)
 
         def is_small_enough(x):
-            """Returns True for individuals with all features <= upper bounds"""
+            """Returns True if all features <= upper bounds"""
             return np.all(np.array([
                 np.less_equal(x[:, key], self.upper[key])
                 for key in self.upper

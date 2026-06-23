@@ -7,6 +7,7 @@ import numpy as np
 
 class Node:
     """Represents a node in a decision tree"""
+
     def __init__(self, feature=None, threshold=None, left_child=None,
                  right_child=None, is_root=False, depth=0):
         """Initializes a node"""
@@ -52,24 +53,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + "\n"
         return new_text
 
     def __str__(self):
@@ -78,7 +73,7 @@ class Node:
             out = f"root [feature={self.feature}, " \
                   f"threshold={self.threshold}]\n"
         else:
-            out = f"node [feature={self.feature}, " \
+            out = f"-> node [feature={self.feature}, " \
                   f"threshold={self.threshold}]\n"
 
         if self.left_child is not None:
@@ -144,6 +139,7 @@ class Node:
 
 class Leaf(Node):
     """Represents a leaf node in a decision tree"""
+
     def __init__(self, value, depth=None):
         """Initializes a leaf node"""
         super().__init__()
@@ -161,7 +157,7 @@ class Leaf(Node):
 
     def __str__(self):
         """String representation of a leaf"""
-        return f"-> leaf [value={self.value}]\n"
+        return f"-> leaf [value={self.value}]"
 
     def get_leaves_below(self):
         """Returns itself inside a list"""
@@ -171,6 +167,24 @@ class Leaf(Node):
         """Leaf bounds updates do nothing"""
         pass
 
+    def update_indicator(self):
+        """Computes the indicator function from lower and upper bounds"""
+        def is_large_enough(x):
+            """Checks if features are > lower bounds"""
+            return np.all(np.array([
+                x[:, key] > self.lower[key] for key in self.lower
+            ]), axis=0)
+
+        def is_small_enough(x):
+            """Checks if features are <= upper bounds"""
+            return np.all(np.array([
+                x[:, key] <= self.upper[key] for key in self.upper
+            ]), axis=0)
+
+        self.indicator = lambda x: np.all(np.array([
+            is_large_enough(x), is_small_enough(x)
+        ]), axis=0)
+
     def pred(self, x):
         """Predict value for a single individual"""
         return self.value
@@ -178,6 +192,7 @@ class Leaf(Node):
 
 class Decision_Tree():
     """Represents a decision tree"""
+
     def __init__(self, max_depth=10, min_pop=1, seed=0,
                  split_criterion="random", root=None):
         """Initializes a decision tree"""
@@ -219,14 +234,11 @@ class Decision_Tree():
         leaves = self.get_leaves()
         for leaf in leaves:
             leaf.update_indicator()
-
-        def predict_func(A):
-            """Predicts classes for an array of individuals"""
-            indicators = np.array([leaf.indicator(A) for leaf in leaves])
-            leaf_indices = np.argmax(indicators, axis=0)
-            return np.array([leaves[i].value for i in leaf_indices])
-
-        self.predict = predict_func
+        self.predict = lambda A: np.array([
+            leaves[np.argmax(np.array([
+                leaf.indicator(A) for leaf in leaves
+            ]), axis=0)[i]].value for i in range(len(A))
+        ])
 
     def pred(self, x):
         """Predict value for a single individual using the tree"""
