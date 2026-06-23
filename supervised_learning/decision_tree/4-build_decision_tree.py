@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Module for building a decision tree - bounds calculation
+Module for building a decision tree - update bounds
 """
 import numpy as np
 
 
 class Node:
     """Represents a node in a decision tree"""
+
     def __init__(self, feature=None, threshold=None, left_child=None,
                  right_child=None, is_root=False, depth=0):
         """Initializes a node"""
@@ -52,22 +53,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + "\n"
         return new_text
 
     def __str__(self):
@@ -95,28 +92,27 @@ class Node:
         return leaves
 
     def update_bounds_below(self):
-        """Recursively computes the lower and upper bounds for each node"""
+        """Recursively computes and attaches lower/upper bound dicts"""
         if self.is_root:
             self.upper = {0: np.inf}
             self.lower = {0: -1 * np.inf}
 
-        if self.left_child is not None:
-            self.left_child.lower = self.lower.copy()
-            self.left_child.upper = self.upper.copy()
-            self.left_child.lower[self.feature] = self.threshold
+        for child in [self.left_child, self.right_child]:
+            child.lower = self.lower.copy()
+            child.upper = self.upper.copy()
 
-        if self.right_child is not None:
-            self.right_child.lower = self.lower.copy()
-            self.right_child.upper = self.upper.copy()
-            self.right_child.upper[self.feature] = self.threshold
+            if child is self.left_child:
+                child.lower[self.feature] = self.threshold
+            else:
+                child.upper[self.feature] = self.threshold
 
         for child in [self.left_child, self.right_child]:
-            if child is not None:
-                child.update_bounds_below()
+            child.update_bounds_below()
 
 
 class Leaf(Node):
     """Represents a leaf node in a decision tree"""
+
     def __init__(self, value, depth=None):
         """Initializes a leaf node"""
         super().__init__()
@@ -134,19 +130,20 @@ class Leaf(Node):
 
     def __str__(self):
         """String representation of a leaf"""
-        return f"-> leaf [value={self.value}]\n"
+        return f"-> leaf [value={self.value}]"
 
     def get_leaves_below(self):
         """Returns itself inside a list"""
         return [self]
 
     def update_bounds_below(self):
-        """Leaf bounds updates do nothing"""
+        """Leaf has no children; bounds already set by parent"""
         pass
 
 
 class Decision_Tree():
     """Represents a decision tree"""
+
     def __init__(self, max_depth=10, min_pop=1, seed=0,
                  split_criterion="random", root=None):
         """Initializes a decision tree"""
@@ -179,5 +176,5 @@ class Decision_Tree():
         return self.root.get_leaves_below()
 
     def update_bounds(self):
-        """Triggers lower and upper bound tracking from root downwards"""
+        """Triggers recursive bound computation from the root"""
         self.root.update_bounds_below()

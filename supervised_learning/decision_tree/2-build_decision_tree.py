@@ -106,10 +106,10 @@ class Leaf(Node):
 class Decision_Tree:
     """Represents a complete decision tree model."""
     def __init__(self, max_depth=10, min_pop=1, seed=0,
-                 split_criterion="gini"):
+                 split_criterion="gini", root=None):
         """Initializes a Decision Tree instance."""
         self.rng = np.random.default_rng(seed)
-        self.root = None
+        self.root = root  # Accept a pre-built root node if provided
         self.max_depth = max_depth
         self.min_pop = min_pop
         self.split_criterion = split_criterion
