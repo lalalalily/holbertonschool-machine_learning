@@ -52,22 +52,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + "\n"
         return new_text
 
     def __str__(self):
@@ -117,20 +113,23 @@ class Node:
     def update_indicator(self):
         """Computes the indicator function from lower and upper bounds"""
         def is_large_enough(x):
-            """Checks if features are > lower bounds"""
+            """Returns True for individuals with all features > lower bounds"""
             return np.all(np.array([
-                x[:, key] > self.lower[key] for key in self.lower
+                np.greater(x[:, key], self.lower[key])
+                for key in self.lower
             ]), axis=0)
 
         def is_small_enough(x):
-            """Checks if features are <= upper bounds"""
+            """Returns True for individuals with all features <= upper bounds"""
             return np.all(np.array([
-                x[:, key] <= self.upper[key] for key in self.upper
+                np.less_equal(x[:, key], self.upper[key])
+                for key in self.upper
             ]), axis=0)
 
-        self.indicator = lambda x: np.all(np.array([
-            is_large_enough(x), is_small_enough(x)
-        ]), axis=0)
+        self.indicator = lambda x: np.all(
+            np.array([is_large_enough(x), is_small_enough(x)]),
+            axis=0
+        )
 
 
 class Leaf(Node):
