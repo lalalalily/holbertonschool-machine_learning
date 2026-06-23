@@ -211,6 +211,7 @@ class Decision_Tree():
         """Updates the prediction function for the tree"""
         self.update_bounds()
         leaves = self.get_leaves()
+
         for leaf in leaves:
             leaf.update_indicator()
 
@@ -316,11 +317,12 @@ class Decision_Tree():
         self.update_predict()
 
         if verbose == 1:
+            acc = self.accuracy(self.explanatory, self.target)
             print(f"""  Training finished.
     - Depth                     : {self.depth()}
     - Number of nodes           : {self.count_nodes()}
     - Number of leaves          : {self.count_nodes(only_leaves=True)}
-    - Accuracy on training data : {self.accuracy(self.explanatory, self.target)}""")
+    - Accuracy on training data : {acc}""")
 
     def accuracy(self, test_explanatory, test_target):
         """Returns the accuracy of the model on the given dataset"""
