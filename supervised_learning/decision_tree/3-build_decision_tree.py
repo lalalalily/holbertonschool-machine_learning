@@ -112,7 +112,7 @@ class Leaf(Node):
 
     def __str__(self):
         """String representation of a leaf"""
-        return f"-> leaf [value={self.value}]\n"
+        return f"-> leaf [value={self.value}]"
 
     def get_leaves_below(self):
         """Returns itself inside a list"""
