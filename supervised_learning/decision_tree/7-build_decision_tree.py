@@ -52,24 +52,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + "\n"
         return new_text
 
     def __str__(self):
@@ -249,64 +243,87 @@ class Decision_Tree():
         threshold = (1 - x) * feature_min + x * feature_max
         return feature, threshold
 
+    def get_leaf_child(self, node, sub_population):
+        """Creates and returns a leaf child node"""
+        node_target = self.target[sub_population]
+        if len(node_target) == 0:
+            value = 0
+        else:
+            value = np.argmax(np.bincount(node_target))
+        leaf_child = Leaf(value)
+        leaf_child.depth = node.depth + 1
+        leaf_child.sub_population = sub_population
+        return leaf_child
+
+    def get_node_child(self, node, sub_population):
+        """Creates and returns an internal child node"""
+        n = Node()
+        n.depth = node.depth + 1
+        n.sub_population = sub_population
+        return n
+
     def fit_node(self, node):
         """Recursively fits a node in the decision tree"""
-        node_target = self.target[node.sub_population]
+        node.feature, node.threshold = self.split_criterion(node)
 
-        if (np.sum(node.sub_population) < self.min_pop or
-                node.depth == self.max_depth or
-                np.all(node_target == node_target[0])):
-            if len(node_target) == 0:
-                val = 0
-            else:
-                counts = np.bincount(node_target)
-                val = np.argmax(counts)
-            node.is_leaf = True
-            node.value = val
-            return
+        left_population = node.sub_population & (
+            self.explanatory[:, node.feature] > node.threshold
+        )
+        right_population = node.sub_population & (
+            self.explanatory[:, node.feature] <= node.threshold
+        )
 
-        if self.split_criterion == "random":
-            feature, threshold = self.random_split_criterion(node)
+        is_left_leaf = (
+            np.sum(left_population) < self.min_pop or
+            node.depth + 1 == self.max_depth or
+            np.all(self.target[left_population] ==
+                   self.target[left_population][0])
+            if np.sum(left_population) > 0 else True
+        )
+
+        if is_left_leaf:
+            node.left_child = self.get_leaf_child(node, left_population)
         else:
-            feature, threshold = self.get_best_split(node)
+            node.left_child = self.get_node_child(node, left_population)
+            self.fit_node(node.left_child)
 
-        node.feature = feature
-        node.threshold = threshold
-
-        left_pop = node.sub_population & (
-            self.explanatory[:, feature] > threshold
+        is_right_leaf = (
+            np.sum(right_population) < self.min_pop or
+            node.depth + 1 == self.max_depth or
+            np.all(self.target[right_population] ==
+                   self.target[right_population][0])
+            if np.sum(right_population) > 0 else True
         )
-        right_pop = node.sub_population & (
-            self.explanatory[:, feature] <= threshold
-        )
 
-        if np.sum(left_pop) == 0 or np.sum(right_pop) == 0:
-            counts = np.bincount(node_target)
-            node.is_leaf = True
-            node.value = np.argmax(counts)
-            return
-
-        node.left_child = Node(depth=node.depth + 1)
-        node.left_child.sub_population = left_pop
-        self.fit_node(node.left_child)
-
-        node.right_child = Node(depth=node.depth + 1)
-        node.right_child.sub_population = right_pop
-        self.fit_node(node.right_child)
+        if is_right_leaf:
+            node.right_child = self.get_leaf_child(node, right_population)
+        else:
+            node.right_child = self.get_node_child(node, right_population)
+            self.fit_node(node.right_child)
 
     def fit(self, explanatory, target, verbose=0):
         """Fits the decision tree to the training data"""
+        if self.split_criterion == "random":
+            self.split_criterion = self.random_split_criterion
+        else:
+            self.split_criterion = self.Gini_split_criterion
+
         self.explanatory = explanatory
         self.target = target
-        self.root.sub_population = np.ones(target.shape[0], dtype=bool)
-        self.fit_node(self.root)
-        if verbose == 1:
-            print("Training finished.")
-            print(f"- Depth : {self.depth()}")
-            print(f"- Number of nodes : {self.count_nodes()}")
-            print(f"- Number of leaves : "
-                  f"{self.count_nodes(only_leaves=True)}")
+        self.root.sub_population = np.ones_like(self.target, dtype='bool')
 
-    def accuracy(self, explanatory, target):
+        self.fit_node(self.root)
+        self.update_predict()
+
+        if verbose == 1:
+            print(f"""  Training finished.
+    - Depth                     : {self.depth()}
+    - Number of nodes           : {self.count_nodes()}
+    - Number of leaves          : {self.count_nodes(only_leaves=True)}
+    - Accuracy on training data : {self.accuracy(self.explanatory, self.target)}""")
+
+    def accuracy(self, test_explanatory, test_target):
         """Returns the accuracy of the model on the given dataset"""
-        return np.sum(self.predict(explanatory) == target) / len(target)
+        return np.sum(
+            np.equal(self.predict(test_explanatory), test_target)
+        ) / test_target.size
