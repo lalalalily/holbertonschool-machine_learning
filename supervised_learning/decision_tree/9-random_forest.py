@@ -11,6 +11,7 @@ class Random_Forest():
     """Represents a Random Forest classifier"""
 
     def __init__(self, n_trees=100, max_depth=10, min_pop=1, seed=0):
+        """Initialize the Random Forest with given hyperparameters."""
         self.numpy_preds = []
         self.target = None
         self.explanatory = None
@@ -20,6 +21,7 @@ class Random_Forest():
         self.seed = seed
 
     def fit(self, explanatory, target, n_trees=100, verbose=0):
+        """Train the random forest by fitting n_trees decision trees."""
         self.target = target
         self.explanatory = explanatory
         self.numpy_preds = []
@@ -54,6 +56,7 @@ class Random_Forest():
                   f" {self.accuracy(self.explanatory, self.target)}")
 
     def predict(self, explanatory):
+        """Predict class labels using majority vote across all trees."""
         preds = np.array([pred(explanatory) for pred in self.numpy_preds])
 
         return np.array([
@@ -62,4 +65,5 @@ class Random_Forest():
         ])
 
     def accuracy(self, explanatory, target):
+        """Return the fraction of correct predictions on the given data."""
         return np.sum(self.predict(explanatory) == target) / target.size
