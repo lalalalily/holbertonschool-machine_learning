@@ -52,24 +52,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("")
+        new_text = "    +--" + lines[0] + ""
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + ""
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("")
+        new_text = "    +--" + lines[0] + ""
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + ""
         return new_text
 
     def __str__(self):
