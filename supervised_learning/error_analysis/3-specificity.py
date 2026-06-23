@@ -17,6 +17,5 @@ def specificity(confusion):
     fp = predicted_positives - tp
     fn = actual_positives - tp
     tn = total - (tp + fp + fn)
-    
     actual_negatives = tn + fp
     return tn / actual_negatives
