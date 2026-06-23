@@ -21,7 +21,7 @@ class Node:
 
     def max_depth_below(self):
         """Calculates the maximum depth below the current node"""
-        if self.left_child is None and self.right_child is None:
+        if self.is_leaf:
             return self.depth
         left_d = 0
         right_d = 0
@@ -33,6 +33,8 @@ class Node:
 
     def count_nodes_below(self, only_leaves=False):
         """Counts the total number of nodes or leaves below this node"""
+        if self.is_leaf:
+            return 1
         if only_leaves:
             left_c = 0
             right_c = 0
@@ -41,7 +43,6 @@ class Node:
             if self.right_child is not None:
                 right_c = self.right_child.count_nodes_below(only_leaves)
             return left_c + right_c
-
         left_c = 0
         right_c = 0
         if self.left_child is not None:
@@ -52,24 +53,18 @@ class Node:
 
     def left_child_add_prefix(self, text):
         """Adds prefix for left child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("    |  " + x) + "
-"
+            new_text += ("    |  " + x) + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds prefix for right child string representation"""
-        lines = text.split("
-")
-        new_text = "    +--" + lines[0] + "
-"
+        lines = text.split("\n")
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:-1]:
-            new_text += ("       " + x) + "
-"
+            new_text += ("       " + x) + "\n"
         return new_text
 
     def __str__(self):
@@ -89,6 +84,8 @@ class Node:
 
     def get_leaves_below(self):
         """Returns a list of all leaves below this node"""
+        if self.is_leaf:
+            return [self]
         leaves = []
         if self.left_child is not None:
             leaves.extend(self.left_child.get_leaves_below())
@@ -101,6 +98,9 @@ class Node:
         if self.is_root:
             self.upper = {0: np.inf}
             self.lower = {0: -1 * np.inf}
+
+        if self.is_leaf:
+            return
 
         if self.left_child is not None:
             self.left_child.lower = self.lower.copy()
@@ -249,72 +249,113 @@ class Decision_Tree():
         threshold = (1 - x) * feature_min + x * feature_max
         return feature, threshold
 
-    def gini_impurity(self, labels):
-        """Calculates the Gini impurity of a set of labels"""
-        if len(labels) == 0:
-            return 0
-        counts = np.bincount(labels)
-        p = counts / len(labels)
-        return 1 - np.sum(p ** 2)
+    def possible_thresholds(self, node, feature):
+        """Returns midpoints between consecutive unique feature values"""
+        values = np.unique(
+            (self.explanatory[:, feature])[node.sub_population]
+        )
+        return (values[1:] + values[:-1]) / 2
 
-    def get_best_split(self, node):
-        """Finds the best split using Gini impurity"""
-        best_gini = np.inf
-        best_feat = None
-        best_threshold = None
+    def Gini_split_criterion_one_feature(self, node, feature):
+        """Finds best threshold for one feature using Gini impurity.
 
-        sub_expl = self.explanatory[node.sub_population]
-        sub_target = self.target[node.sub_population]
-        n_samples, n_features = sub_expl.shape
+        Vectorized computation over all thresholds and classes at once.
+        No for or while loops used.
+        Returns (best_threshold, best_gini_split_value).
+        """
+        thresholds = self.possible_thresholds(node, feature)
+        if len(thresholds) == 0:
+            return (None, np.inf)
 
-        for feat in range(n_features):
-            values = sub_expl[:, feat]
-            sort_idx = np.argsort(values)
-            sorted_val = values[sort_idx]
-            sorted_tar = sub_target[sort_idx]
+        # Feature values and targets for this node's sub-population
+        feat_vals = self.explanatory[:, feature][node.sub_population]
+        labels = self.target[node.sub_population]
+        n = len(labels)
 
-            for i in range(n_samples - 1):
-                threshold = (sorted_val[i] + sorted_val[i + 1]) / 2.0
+        classes = np.unique(labels)
 
-                left_tar = sorted_tar[sorted_val > threshold]
-                right_tar = sorted_tar[sorted_val <= threshold]
+        # Shape: (n_individuals, n_thresholds)
+        # True where individual's feature > threshold => goes LEFT
+        goes_left = feat_vals[:, np.newaxis] > thresholds[np.newaxis, :]
 
-                if len(left_tar) == 0 or len(right_tar) == 0:
-                    continue
+        # Shape: (n_individuals, n_classes)
+        # True where individual belongs to class k
+        is_class = labels[:, np.newaxis] == classes[np.newaxis, :]
 
-                g_left = self.gini_impurity(left_tar)
-                g_right = self.gini_impurity(right_tar)
+        # Shape: (n_individuals, n_thresholds, n_classes)
+        # Left_F[i, j, k] = True iff individual i goes left at threshold j
+        #                    AND individual i is of class k
+        left_f = goes_left[:, :, np.newaxis] & is_class[:, np.newaxis, :]
 
-                gini = (len(left_tar) * g_left +
-                        len(right_tar) * g_right) / n_samples
+        # Count per (threshold, class) for left and right children
+        # Shape: (n_thresholds, n_classes)
+        left_counts = left_f.sum(axis=0).astype(float)
+        right_counts = (is_class[:, np.newaxis, :] & ~goes_left[
+            :, :, np.newaxis]).sum(axis=0).astype(float)
 
-                if gini < best_gini:
-                    best_gini = gini
-                    best_feat = feat
-                    best_threshold = threshold
+        # Total per threshold: shape (n_thresholds,)
+        n_left = left_counts.sum(axis=1)
+        n_right = right_counts.sum(axis=1)
 
-        return best_feat, best_threshold
+        # Avoid division by zero
+        n_left_safe = np.where(n_left == 0, 1, n_left)
+        n_right_safe = np.where(n_right == 0, 1, n_right)
+
+        # Gini impurity = 1 - sum(p_k^2)
+        # Shape: (n_thresholds,)
+        gini_left = 1 - np.sum(
+            (left_counts / n_left_safe[:, np.newaxis]) ** 2, axis=1
+        )
+        gini_right = 1 - np.sum(
+            (right_counts / n_right_safe[:, np.newaxis]) ** 2, axis=1
+        )
+
+        # Weighted average Gini split
+        gini_split = (n_left * gini_left + n_right * gini_right) / n
+
+        # Mask out invalid splits (empty left or right)
+        valid = (n_left > 0) & (n_right > 0)
+        gini_split = np.where(valid, gini_split, np.inf)
+
+        best_idx = np.argmin(gini_split)
+        return thresholds[best_idx], gini_split[best_idx]
+
+    def Gini_split_criterion(self, node):
+        """Finds best feature and threshold using Gini impurity across all features"""
+        X = np.array([
+            self.Gini_split_criterion_one_feature(node, i)
+            for i in range(self.explanatory.shape[1])
+        ])
+        i = np.argmin(X[:, 1])
+        return i, X[i, 0]
 
     def fit_node(self, node):
         """Recursively fits a node in the decision tree"""
         node_target = self.target[node.sub_population]
 
-        if (np.sum(node.sub_population) < self.min_pop or
-                node.depth == self.max_depth or
-                np.all(node_target == node_target[0])):
+        is_pure = np.all(node_target == node_target[0])
+        too_small = np.sum(node.sub_population) < self.min_pop
+        max_depth_reached = node.depth == self.max_depth
+
+        if too_small or max_depth_reached or is_pure:
             if len(node_target) == 0:
                 val = 0
             else:
                 counts = np.bincount(node_target)
                 val = np.argmax(counts)
+            leaf = Leaf(value=val, depth=node.depth)
+            leaf.sub_population = node.sub_population
+            # Replace this node in its parent by updating in-place
             node.is_leaf = True
             node.value = val
+            node.left_child = None
+            node.right_child = None
             return
 
         if self.split_criterion == "random":
             feature, threshold = self.random_split_criterion(node)
         else:
-            feature, threshold = self.get_best_split(node)
+            feature, threshold = self.Gini_split_criterion(node)
 
         node.feature = feature
         node.threshold = threshold
@@ -330,6 +371,8 @@ class Decision_Tree():
             counts = np.bincount(node_target)
             node.is_leaf = True
             node.value = np.argmax(counts)
+            node.left_child = None
+            node.right_child = None
             return
 
         node.left_child = Node(depth=node.depth + 1)
@@ -346,12 +389,19 @@ class Decision_Tree():
         self.target = target
         self.root.sub_population = np.ones(target.shape[0], dtype=bool)
         self.fit_node(self.root)
+        self.update_predict()
         if verbose == 1:
-            print("Training finished.")
-            print(f"- Depth : {self.depth()}")
-            print(f"- Number of nodes : {self.count_nodes()}")
-            print(f"- Number of leaves : "
-                  f"{self.count_nodes(only_leaves=True)}")
+            print("  Training finished.")
+            print(f"    - Depth                     : {self.depth()}")
+            print(f"    - Number of nodes           : {self.count_nodes()}")
+            print(
+                f"    - Number of leaves          : "
+                f"{self.count_nodes(only_leaves=True)}"
+            )
+            print(
+                f"    - Accuracy on training data : "
+                f"{self.accuracy(explanatory, target)}"
+            )
 
     def accuracy(self, explanatory, target):
         """Returns the accuracy of the model on the given dataset"""
