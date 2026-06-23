@@ -321,7 +321,7 @@ class Decision_Tree():
         return thresholds[best_idx], gini_split[best_idx]
 
     def Gini_split_criterion(self, node):
-        """Finds best feature and threshold using Gini impurity across all features"""
+        """Finds best feature and threshold using Gini impurity"""
         X = np.array([
             self.Gini_split_criterion_one_feature(node, i)
             for i in range(self.explanatory.shape[1])
