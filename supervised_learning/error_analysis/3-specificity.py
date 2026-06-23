@@ -13,7 +13,6 @@ def specificity(confusion):
     tp = np.diag(confusion)
     actual_positives = np.sum(confusion, axis=1)
     predicted_positives = np.sum(confusion, axis=0)
-    
     fp = predicted_positives - tp
     fn = actual_positives - tp
     tn = total - (tp + fp + fn)
