@@ -39,7 +39,6 @@ class Node:
             if self.right_child:
                 count += self.right_child.count_nodes_below(only_leaves=True)
             return count
-
         count = 1
         if self.left_child:
             count += self.left_child.count_nodes_below(only_leaves=False)
@@ -50,30 +49,29 @@ class Node:
     def left_child_add_prefix(self, text):
         """Adds formatting prefixes for left children visualization."""
         lines = text.split("\n")
-        new_text = " +--" + lines[0] + "\n"
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:]:
             if x:
-                new_text += " |  " + x + "\n"
+                new_text += "    |  " + x + "\n"
         return new_text
 
     def right_child_add_prefix(self, text):
         """Adds formatting prefixes for right children visualization."""
         lines = text.split("\n")
-        new_text = " +--" + lines[0] + "\n"
+        new_text = "    +--" + lines[0] + "\n"
         for x in lines[1:]:
             if x:
-                new_text += "    " + x + "\n"
+                new_text += "       " + x + "\n"
         return new_text
 
     def __str__(self):
         """Returns the string representation of the node."""
         if self.is_root:
-            out = f"root [feature={self.feature}, \
-threshold={self.threshold}]\n"
+            out = (f"root [feature={self.feature},"
+                   f" threshold={self.threshold}]\n")
         else:
-            out = f"-> node [feature={self.feature}, \
-threshold={self.threshold}]\n"
-
+            out = (f"-> node [feature={self.feature},"
+                   f" threshold={self.threshold}]\n")
         if self.left_child:
             out += self.left_child_add_prefix(str(self.left_child))
         if self.right_child:
@@ -100,7 +98,7 @@ class Leaf(Node):
 
     def __str__(self):
         """Returns the string representation of the leaf."""
-        return f"-> leaf [value={self.value}]\n"
+        return f"-> leaf [value={self.value}]"
 
 
 class Decision_Tree:
@@ -109,7 +107,7 @@ class Decision_Tree:
                  split_criterion="gini", root=None):
         """Initializes a Decision Tree instance."""
         self.rng = np.random.default_rng(seed)
-        self.root = root  # Accept a pre-built root node if provided
+        self.root = root
         self.max_depth = max_depth
         self.min_pop = min_pop
         self.split_criterion = split_criterion
