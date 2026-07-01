@@ -87,7 +87,7 @@ class NeuralNetwork:
     def evaluate(self, X, Y):
         """
         Evaluates predictions made by the network.
-        
+
         Parameters:
         X: numpy.ndarray with shape (nx, m) containing input data
         Y: numpy.ndarray with shape (1, m) containing actual labels
@@ -97,9 +97,9 @@ class NeuralNetwork:
         """
         _, A2 = self.forward_prop(X)
         cost = self.cost(Y, A2)
-        
+
         # Converts probabilities into binary classifications (0 or 1)
         # explicitly cast as integer to fit standard output matrix type
         prediction = np.where(A2 >= 0.5, 1, 0)
-        
+
         return prediction, cost
