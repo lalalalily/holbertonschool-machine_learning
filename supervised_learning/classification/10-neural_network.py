@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Defines a neural network with one hidden layer performing binary classification
-and includes forward propagation.
+with cost and propagation methods.
 """
 import numpy as np
 
@@ -23,65 +23,63 @@ class NeuralNetwork:
         if nodes < 1:
             raise ValueError("nodes must be a positive integer")
 
-        # Private hidden layer weights, biases, and activation output
         self.__W1 = np.random.normal(size=(nodes, nx))
         self.__b1 = np.zeros((nodes, 1))
         self.__A1 = 0
 
-        # Private output neuron weights, bias, and activation output
         self.__W2 = np.random.normal(size=(1, nodes))
         self.__b2 = 0
         self.__A2 = 0
 
     @property
     def W1(self):
-        """Getter for W1"""
+        """Getter W1"""
         return self.__W1
 
     @property
     def b1(self):
-        """Getter for b1"""
+        """Getter b1"""
         return self.__b1
 
     @property
     def A1(self):
-        """Getter for A1"""
+        """Getter A1"""
         return self.__A1
 
     @property
     def W2(self):
-        """Getter for W2"""
+        """Getter W2"""
         return self.__W2
 
     @property
     def b2(self):
-        """Getter for b2"""
+        """Getter b2"""
         return self.__b2
 
     @property
     def A2(self):
-        """Getter for A2"""
+        """Getter A2"""
         return self.__A2
 
     def forward_prop(self, X):
         """
         Calculates the forward propagation of the neural network
         using the sigmoid activation function.
-        
-        Parameters:
-        X: numpy.ndarray with shape (nx, m) containing the input data
-        
-        Returns:
-        The private attributes __A1 and __A2, respectively
         """
-        # Linear step for Hidden Layer
         Z1 = np.matmul(self.__W1, X) + self.__b1
-        # Sigmoid activation for Hidden Layer
         self.__A1 = 1 / (1 + np.exp(-Z1))
 
-        # Linear step for Output Layer
         Z2 = np.matmul(self.__W2, self.__A1) + self.__b2
-        # Sigmoid activation for Output Layer
         self.__A2 = 1 / (1 + np.exp(-Z2))
 
         return self.__A1, self.__A2
+
+    def cost(self, Y, A):
+        """
+        Calculates the cost of the model using logistic regression.
+        Uses 1.0000001 - A instead of 1 - A to avoid division by zero.
+        """
+        m = Y.shape[1]
+        loss = Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A)
+        cost = -1 / m * np.sum(loss)
+        return cost
