@@ -66,13 +66,13 @@ class Neuron:
 
         Args:
             Y (numpy.ndarray): Correct labels with shape (1, m).
-            A (numpy.ndarray): Activated output of the neuron with shape (1, m).
+            A (numpy.ndarray): Activated output of the neuron.
 
         Returns:
             The binary cross-entropy cost.
         """
         m = Y.shape[1]
-        
+
         # Binary cross-entropy formula with numerical stability handling
         # -1/m * sum(Y * log(A) + (1 - Y) * log(1.0000001 - A))
         loss = Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A)
