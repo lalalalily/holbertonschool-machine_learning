@@ -88,5 +88,5 @@ class NeuralNetwork:
         # Logistic regression loss / Cross-entropy cost calculation
         # Uses 1.0000001 - A to safeguard against log(0)
         loss = Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A)
-        cost = -1 / m * np.sum(loss)  
+        cost = -1 / m * np.sum(loss)
         return cost
