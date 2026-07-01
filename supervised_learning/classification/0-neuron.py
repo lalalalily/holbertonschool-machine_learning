@@ -20,7 +20,8 @@ class Neuron:
         if nx < 1:
             raise ValueError("nx must be a positive integer")
 
-        # Initialize weights with a random normal distribution in a 2D array (1, nx)
+        # Initialize weights with a random normal distribution 
+        # in a 2D array (1, nx)
         self.W = np.random.normal(size=(1, nx))
         # Initialize bias to 0
         self.b = 0
