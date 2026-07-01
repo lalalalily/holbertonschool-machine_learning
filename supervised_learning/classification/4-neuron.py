@@ -66,7 +66,7 @@ class Neuron:
 
         Args:
             Y (numpy.ndarray): Correct labels with shape (1, m).
-            A (numpy.ndarray): Activated output of the neuron with shape (1, m).
+            A (numpy.ndarray): Activated output of the neuron.
 
         Returns:
             The binary cross-entropy cost.
@@ -89,14 +89,14 @@ class Neuron:
                                         if A >= 0.5 and 0 otherwise.
             cost (float): The cost of the network.
         """
-        # Run forward propagation to get the network's activated output (self.__A)
+        # Run forward propagation to get the network's activated output
         A = self.forward_prop(X)
-        
+
         # Calculate the cost using the current activations and true labels
         cost = self.cost(Y, A)
-        
+
         # Convert probabilities to binary outcomes: 1 if >= 0.5, else 0
-        # np.where returns an array of the same shape matching the threshold rule
+        # np.where returns an array of the same shape
         prediction = np.where(A >= 0.5, 1, 0)
-        
+
         return prediction, cost
