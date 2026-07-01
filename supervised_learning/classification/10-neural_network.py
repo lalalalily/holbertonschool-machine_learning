@@ -82,7 +82,7 @@ class NeuralNetwork:
         Parameters:
         Y: numpy.ndarray with shape (1, m) containing the correct labels
         A: numpy.ndarray with shape (1, m) containing the activated output
-  
+
         Returns:
         The cost value
         """
