@@ -91,7 +91,7 @@ class NeuralNetwork:
         Parameters:
         X: numpy.ndarray with shape (nx, m) containing input data
         Y: numpy.ndarray with shape (1, m) containing actual labels
-        
+     
         Returns:
         The evaluated prediction matrix and its associated network cost.
         """
