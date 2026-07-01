@@ -77,5 +77,5 @@ class Neuron:
         # -1/m * sum(Y * log(A) + (1 - Y) * log(1.0000001 - A))
         loss = Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A)
         cost = -1 / m * np.sum(loss)
-        
+
         return cost
