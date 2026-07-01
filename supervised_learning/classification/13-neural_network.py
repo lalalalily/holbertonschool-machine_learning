@@ -96,7 +96,7 @@ class NeuralNetwork:
     def gradient_descent(self, X, Y, A1, A2, alpha=0.05):
         """
         Calculates one pass of gradient descent on the neural network.
-        
+
         Parameters:
         X: numpy.ndarray input data matrix
         Y: numpy.ndarray true target labels matrix
