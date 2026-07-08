@@ -36,7 +36,7 @@ def train_model(network, data, labels, batch_size, epochs,
 
     # Callbacks require validation_data to be passed
     if validation_data is not None:
-    
+
         # 1. Early Stopping Callback
         if early_stopping:
             early_stop_callback = K.callbacks.EarlyStopping(
