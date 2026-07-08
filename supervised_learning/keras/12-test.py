@@ -13,7 +13,7 @@ def test_model(network, data, labels, verbose=True):
     network: The network model to test.
     data: The input data to test the model with.
     labels: The correct one-hot labels of the data.
-    verbose: A boolean determining if output should be printed 
+    verbose: A boolean determining if output should be printed
              during the testing process.
 
     Returns:
