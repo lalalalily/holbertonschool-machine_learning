@@ -3,7 +3,7 @@
 Defines a function that builds a neural network with the Keras library
 Using the Sequential API without the Input class.
 """
-import tensorflow as tf
+import tensorflow.keras as K
 
 
 def build_model(nx, layers, activations, lambtha, keep_prob):
@@ -20,22 +20,22 @@ def build_model(nx, layers, activations, lambtha, keep_prob):
     Returns:
         The Keras model
     """
-    model = tf.keras.Sequential()
+    model = K.Sequential()
     
-    # Configure L2 regularization
-    regularizer = tf.keras.regularizers.l2(lambtha)
+    # Configure L2 regularization using the K alias
+    regularizer = K.regularizers.l2(lambtha)
 
     for i in range(len(layers)):
         if i == 0:
-            # First layer requires the input_shape parameter
-            model.add(tf.keras.layers.Dense(
+            # First layer specifies the input shape directly
+            model.add(K.layers.Dense(
                 units=layers[i],
                 activation=activations[i],
                 kernel_regularizer=regularizer,
                 input_shape=(nx,)
             ))
         else:
-            model.add(tf.keras.layers.Dense(
+            model.add(K.layers.Dense(
                 units=layers[i],
                 activation=activations[i],
                 kernel_regularizer=regularizer
@@ -43,7 +43,8 @@ def build_model(nx, layers, activations, lambtha, keep_prob):
 
         # Add Dropout layer after each hidden layer (not after the output layer)
         if i < len(layers) - 1:
-            # Keras Dropout takes the rate of dropping (1 - keep_prob)
-            model.add(tf.keras.layers.Dropout(rate=1 - keep_prob))
+            # Keras Dropout takes the drop rate (1 - keep_prob)
+            model.add(K.layers.Dropout(rate=1 - keep_prob))
 
     return model
+    
