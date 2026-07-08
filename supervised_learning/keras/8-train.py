@@ -7,9 +7,10 @@ and saving the best iteration of the model.
 import tensorflow.keras as K
 
 
-def train_model(network, data, labels, batch_size, epochs, validation_data=None,
-                early_stopping=False, patience=0, learning_rate_decay=False,
-                alpha=0.1, decay_rate=1, save_best=False, filepath=None,
+def train_model(network, data, labels, batch_size, epochs,
+                validation_data=None, early_stopping=False, patience=0,
+                learning_rate_decay=False, alpha=0.1, decay_rate=1,
+                save_best=False, filepath=None,
                 verbose=True, shuffle=False):
     """
     Trains a Keras model with options for early stopping, LR decay, and
@@ -23,7 +24,7 @@ def train_model(network, data, labels, batch_size, epochs, validation_data=None,
         epochs: number of passes through the data
         validation_data: data to validate the model with, as a tuple of
                          (X_valid, Y_valid), or None
-        early_stopping: boolean indicating whether early stopping should be used
+        early_stopping: boolean indicating whether early stopping should be
         patience: the patience used for early stopping
         learning_rate_decay: boolean indicating whether LR decay should be used
         alpha: the initial learning rate
