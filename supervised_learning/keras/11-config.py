@@ -2,7 +2,7 @@
 """
 Module to save and load model configurations
 """
-import tensorflow as tf
+import tensorflow.keras as K
 
 
 def save_config(network, filename):
@@ -16,7 +16,6 @@ def save_config(network, filename):
     Returns:
     None
     """
-    # network.to_json() returns the model design scheme as a JSON string
     model_json = network.to_json()
     with open(filename, "w", encoding="utf-8") as json_file:
         json_file.write(model_json)
@@ -34,6 +33,5 @@ def load_config(filename):
     """
     with open(filename, "r", encoding="utf-8") as json_file:
         model_json = json_file.read()
-    
-    # Rebuilds the user network model configuration directly from the JSON string
-    return tf.keras.models.model_from_json(model_json)
+
+    return K.models.model_from_json(model_json)
