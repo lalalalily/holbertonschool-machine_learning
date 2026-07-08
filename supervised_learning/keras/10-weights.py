@@ -2,6 +2,7 @@
 """
 Module to save and load model weights
 """
+import tensorflow.keras as K
 
 
 def save_weights(network, filename, save_format='keras'):
