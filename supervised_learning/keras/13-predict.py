@@ -12,7 +12,7 @@ def predict(network, data, verbose=False):
     Parameters:
     network: The network model to make the prediction with.
     data: The input data to make the prediction with.
-    verbose: A boolean determining if output should be printed 
+    verbose: A boolean determining if output should be printed
              during the prediction process.
 
     Returns:
