@@ -22,7 +22,7 @@ def build_model(nx, layers, activations, lambtha, keep_prob):
     """
     # Define the input layer explicitly for the Functional API
     inputs = K.Input(shape=(nx,))
-    
+
     # Configure L2 regularization
     regularizer = K.regularizers.l2(lambtha)
 
