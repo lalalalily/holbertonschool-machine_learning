@@ -21,7 +21,7 @@ def build_model(nx, layers, activations, lambtha, keep_prob):
         The Keras model
     """
     model = K.Sequential()
-    
+
     # Configure L2 regularization using the K alias
     regularizer = K.regularizers.l2(lambtha)
 
@@ -41,10 +41,9 @@ def build_model(nx, layers, activations, lambtha, keep_prob):
                 kernel_regularizer=regularizer
             ))
 
-        # Add Dropout layer after each hidden layer (not after the output layer)
+        # Add Dropout layer after each hidden layer
         if i < len(layers) - 1:
             # Keras Dropout takes the drop rate (1 - keep_prob)
             model.add(K.layers.Dropout(rate=1 - keep_prob))
 
     return model
-    
