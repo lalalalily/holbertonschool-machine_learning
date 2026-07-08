@@ -6,8 +6,9 @@ and handles validation data with early stopping.
 import tensorflow.keras as K
 
 
-def train_model(network, data, labels, batch_size, epochs, validation_data=None,
-                early_stopping=False, patience=0, verbose=True, shuffle=False):
+def train_model(network, data, labels, batch_size, epochs,
+                validation_data=None, early_stopping=False,
+                patience=0, verbose=True, shuffle=False):
     """
     Trains a Keras model using mini-batch gradient descent and early stopping.
 
@@ -19,7 +20,7 @@ def train_model(network, data, labels, batch_size, epochs, validation_data=None,
         epochs: number of passes through the data
         validation_data: data to validate the model with, as a tuple of
                          (X_valid, Y_valid), or None
-        early_stopping: boolean indicating whether early stopping should be used
+        early_stopping: boolean indicating whether early stopping should be
         patience: the patience used for early stopping
         verbose: boolean that determines if output should be printed
         shuffle: boolean that determines whether to shuffle batches each epoch
