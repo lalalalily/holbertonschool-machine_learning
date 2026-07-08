@@ -6,8 +6,8 @@ handling validation data, early stopping, and step-wise inverse time decay.
 import tensorflow.keras as K
 
 
-def train_model(network, data, labels, batch_size, epochs,
-                validation_data=None, early_stopping=False,
+def train_model(network, data, labels, batch_size, epochs, validation_data=None,
+                early_stopping=False, patience=0, learning_rate_decay=False,
                 alpha=0.1, decay_rate=1, verbose=True, shuffle=False):
     """
     Trains a Keras model with options for early stopping and LR decay.
@@ -20,9 +20,9 @@ def train_model(network, data, labels, batch_size, epochs,
         epochs: number of passes through the data
         validation_data: data to validate the model with, as a tuple of
                          (X_valid, Y_valid), or None
-        early_stopping: boolean indicating whether early stopping should be
+        early_stopping: boolean indicating whether early stopping should
         patience: the patience used for early stopping
-        learning_rate_decay: boolean indicating whether LR decay should be used
+        learning_rate_decay: boolean indicating whether LR decay should
         alpha: the initial learning rate
         decay_rate: the decay rate for inverse time decay
         verbose: boolean that determines if output should be printed
@@ -33,9 +33,10 @@ def train_model(network, data, labels, batch_size, epochs,
     """
     callbacks = []
 
-    # Check validation data condition for callbacks
+    # Callbacks require validation_data to be passed
     if validation_data is not None:
-        # Configure early stopping callback
+        
+        # 1. Early Stopping Callback
         if early_stopping:
             early_stop_callback = K.callbacks.EarlyStopping(
                 monitor='val_loss',
@@ -43,10 +44,9 @@ def train_model(network, data, labels, batch_size, epochs,
             )
             callbacks.append(early_stop_callback)
 
-        # Configure inverse time learning rate decay callback
+        # 2. Learning Rate Decay Callback (Inverse Time Decay)
         if learning_rate_decay:
             def scheduler(epoch):
-                """Calculates learning rate based on inverse time decay."""
                 return alpha / (1 + decay_rate * epoch)
 
             lr_scheduler = K.callbacks.LearningRateScheduler(
@@ -55,6 +55,7 @@ def train_model(network, data, labels, batch_size, epochs,
             )
             callbacks.append(lr_scheduler)
 
+    # Train the network using mini-batch gradient descent
     history = network.fit(
         x=data,
         y=labels,
