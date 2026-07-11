@@ -16,7 +16,9 @@ def learning_rate_decay(alpha, decay_rate, decay_step):
     Returns:
     tf.keras.optimizers.schedules.LearningRateSchedule: The decay schedule
     """
-    class StepwiseInverseTimeDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
+    class StepwiseInverseTimeDecay(
+        tf.keras.optimizers.schedules.LearningRateSchedule
+    ):
         """Custom learning rate schedule for stepwise inverse time decay"""
         def __init__(self, alpha, decay_rate, decay_step):
             self.alpha = alpha
