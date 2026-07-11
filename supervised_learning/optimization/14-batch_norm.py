@@ -15,7 +15,7 @@ def create_batch_norm_layer(prev, n, activation):
     Returns:
     tf.Tensor: A tensor representing the activated output for the layer
     """
-    # 1. Base Dense layer with variance scaling initializer and no inherent bias
+    # 1. Base Dense layer with variance scaling initializer
     init = tf.keras.initializers.VarianceScaling(mode='fan_avg')
     dense_layer = tf.keras.layers.Dense(
         units=n,
@@ -36,5 +36,5 @@ def create_batch_norm_layer(prev, n, activation):
     # 3. Apply activation function
     if activation is not None:
         return activation(Z_norm)
-    
+
     return Z_norm
