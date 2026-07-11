@@ -30,7 +30,8 @@ def create_batch_norm_layer(prev, n, activation):
         gamma_initializer='ones',
         epsilon=1e-7
     )
-    Z_norm = batch_norm(Z)
+    # CRITICAL: Pass training=True to force batch statistic calculation
+    Z_norm = batch_norm(Z, training=True)
 
     # 3. Apply activation function
     if activation is not None:
