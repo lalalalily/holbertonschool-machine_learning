@@ -12,7 +12,7 @@ def normalize(X, m, s):
     X (numpy.ndarray): Matrix of shape (d, nx) to normalize
                        d is the number of data points
                        nx is the number of features
-    m (numpy.ndarray): Matrix of shape (nx,) containing the mean of all features
+    m (numpy.ndarray): Matrix of shape (nx,) containing the mean of all
     s (numpy.ndarray): Matrix of shape (nx,) containing the std of all features
 
     Returns:
