@@ -20,7 +20,7 @@ def moving_average(data, beta):
     for t, theta in enumerate(data, start=1):
         # Update the exponentially weighted moving average
         v = beta * v + (1 - beta) * theta
-    
+
         # Apply bias correction
         v_corrected = v / (1 - (beta ** t))
         moving_averages.append(v_corrected)
