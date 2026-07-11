@@ -16,6 +16,6 @@ def shuffle_data(X, Y):
     """
     # Get a permutation of indices based on the number of data points (m)
     permutation = np.random.permutation(X.shape[0])
-    
+
     # Use advanced indexing to shuffle both arrays identically
     return X[permutation], Y[permutation]
