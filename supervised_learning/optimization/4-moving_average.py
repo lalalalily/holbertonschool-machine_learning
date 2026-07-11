@@ -1,31 +1,28 @@
 #!/usr/bin/env python3
-"""Creates mini-batches for training from a dataset"""
-import numpy as np
-shuffle_data = __import__('2-shuffle_data').shuffle_data
+"""Calculates the weighted moving average with bias correction"""
 
 
-def create_mini_batches(X, Y, batch_size):
+def moving_average(data, beta):
     """
-    Creates mini-batches from a dataset for mini-batch gradient descent.
+    Calculates the exponentially weighted moving average of a data set
+    using bias correction.
 
     Parameters:
-    X (numpy.ndarray): Matrix of shape (m, nx) representing input data
-    Y (numpy.ndarray): Matrix of shape (m, ny) representing labels
-    batch_size (int): Number of data points in a batch
+    data (list): List of data points
+    beta (float): The weight used for the moving average
 
     Returns:
-    list: List of mini-batches containing tuples (X_batch, Y_batch)
+    list: A list containing the moving averages of the data
     """
-    # First shuffle X and Y synchronously
-    X_shuffled, Y_shuffled = shuffle_data(X, Y)
+    moving_averages = []
+    v = 0
 
-    m = X.shape[0]
-    mini_batches = []
+    for t, theta in enumerate(data, start=1):
+        # Update the exponentially weighted moving average
+        v = beta * v + (1 - beta) * theta
+        
+        # Apply bias correction
+        v_corrected = v / (1 - (beta ** t))
+        moving_averages.append(v_corrected)
 
-    # Loop through data to extract full batches
-    for i in range(0, m, batch_size):
-        X_batch = X_shuffled[i:i + batch_size]
-        Y_batch = Y_shuffled[i:i + batch_size]
-        mini_batches.append((X_batch, Y_batch))
-
-    return mini_batches
+    return moving_averages
