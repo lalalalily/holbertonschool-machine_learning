@@ -14,11 +14,21 @@ def learning_rate_decay(alpha, decay_rate, decay_step):
     decay_step (int): Number of passes before alpha decays further
 
     Returns:
-    tf.keras.optimizers.schedules.InverseTimeDecay: The decay schedule object
+    tf.keras.optimizers.schedules.LearningRateSchedule: The decay schedule
     """
-    return tf.keras.optimizers.schedules.InverseTimeDecay(
-        initial_learning_rate=alpha,
-        decay_steps=decay_step
-        decay_rate=decay_rate,
-        staircase=True
-    )
+    class StepwiseInverseTimeDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
+        """Custom learning rate schedule for stepwise inverse time decay"""
+        def __init__(self, alpha, decay_rate, decay_step):
+            self.alpha = alpha
+            self.decay_rate = decay_rate
+            self.decay_step = decay_step
+
+        def __call__(self, step):
+            # Cast the step to float32 for safe mathematical operations
+            step = tf.cast(step, tf.float32)
+            # Implement the floor/staircase division step calculation
+            decay_steps_done = tf.floor(step / self.decay_step)
+            # Apply the inverse time decay formula
+            return self.alpha / (1.0 + self.decay_rate * decay_steps_done)
+
+    return StepwiseInverseTimeDecay(alpha, decay_rate, decay_step)
