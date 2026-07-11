@@ -18,8 +18,8 @@ def learning_rate_decay(alpha, decay_rate, global_step, decay_step):
     """
     # Enforce stepwise behavior by taking the floor division
     step = global_step // decay_step
-    
+
     # Calculate inverse time decay
     alpha_decayed = alpha / (1 + decay_rate * step)
-    
+
     return alpha_decayed

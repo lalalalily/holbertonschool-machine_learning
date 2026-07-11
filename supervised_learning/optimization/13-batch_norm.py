@@ -18,7 +18,7 @@ def batch_norm(Z, gamma, beta, epsilon):
     numpy.ndarray: The normalized Z matrix
     """
     # Compute mean and variance along data points (axis 0)
-    mean = np.mean(Z, axis=0)
+    mean = np.mean(Z, axis=0
     variance = np.var(Z, axis=0)
 
     # Standardize the unactivated matrix
