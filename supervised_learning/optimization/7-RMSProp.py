@@ -21,7 +21,7 @@ def update_variables_RMSProp(alpha, beta2, epsilon, var, grad, s):
     # Calculate the new second raw moment vector (exponential moving average)
     s_new = beta2 * s + (1 - beta2) * (grad ** 2)
 
-    # Update the variable weights 
+    # Update the variable weights
     var_new = var - (alpha / (np.sqrt(s_new) + epsilon)) * grad
 
     return var_new, s_new
