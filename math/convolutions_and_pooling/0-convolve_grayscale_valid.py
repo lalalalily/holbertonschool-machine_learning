@@ -1,4 +1,9 @@
+#!/usr/bin/env python3
+"""
+Valid Convolution Module
+"""
 import numpy as np
+
 
 def convolve_grayscale_valid(images, kernel):
     """
@@ -29,8 +34,7 @@ def convolve_grayscale_valid(images, kernel):
             # image_patch shape: (m, kh, kw)
             image_patch = images[:, i:i+kh, j:j+kw]
             
-            # Multiply the patch by the kernel (broadcasting applies the kernel to each image in the batch)
-            # Sum over axis 1 (height) and axis 2 (width) to collapse the kernel dimensions
+            # Multiply the patch by the kernel and sum over axis 1 and 2
             convolved_images[:, i, j] = np.sum(image_patch * kernel, axis=(1, 2))
             
     return convolved_images
