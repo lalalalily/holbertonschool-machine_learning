@@ -38,7 +38,7 @@ class Yolo:
         Parameters:
             outputs (list of numpy.ndarray): Model output predictions.
                 Each array shape: (grid_height, grid_width, anchor_boxes, 4 + 1 + classes)
-            image_size (numpy.ndarray): Original image size [image_height, image_width].
+            image_size (numpy.ndarray):Original image size[image_height, image_width]
 
         Returns:
             tuple of (boxes, box_confidences, box_class_probs):
