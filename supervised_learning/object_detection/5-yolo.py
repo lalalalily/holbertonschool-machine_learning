@@ -1,30 +1,27 @@
-def preprocess_images(self, images):
-        """
-        images: a list of images as numpy.ndarrays
+#!/usr/bin/env python3
+"""Defines the Yolo class for performing object detection using YOLOv3"""
+import numpy as np
+import tensorflow.keras as K
+import glob
+import cv2
+import os
 
-        Returns: (pimages, image_shapes)
-            pimages: a numpy.ndarray of shape (ni, input_h, input_w, 3)
-                containing all of the preprocessed images
-            image_shapes: a numpy.ndarray of shape (ni, 2) containing the
-                original height and width of the images
-        """
-        input_h = self.model.input.shape[1]
-        input_w = self.model.input.shape[2]
 
-        pimages_list = []
-        image_shapes_list = []
+class Yolo:
+    """Uses the Yolo v3 algorithm to perform object detection"""
 
-        for img in images:
-            image_shapes_list.append(img.shape[:2])
+    def __init__(self, model_path, classes_path, class_t, nms_t, anchors):
+        """Class constructor"""
+        self.model = K.models.load_model(model_path)
+        with open(classes_path, 'r') as f:
+            self.class_names = [line.strip() for line in f]
+        self.class_t = class_t
+        self.nms_t = nms_t
+        self.anchors = anchors
 
-            resized = cv2.resize(
-                img, (input_w, input_h), interpolation=cv2.INTER_CUBIC
-            )
-            resized = resized / 255
+    def sigmoid(self, x):
+        """Applies the sigmoid function"""
+        return 1 / (1 + np.exp(-x))
 
-            pimages_list.append(resized)
-
-        pimages = np.array(pimages_list)
-        image_shapes = np.array(image_shapes_list)
-
-        return pimages, image_shapes
+    def process_outputs(self, outputs, image_size):
+        """..."""
