@@ -48,8 +48,8 @@ class Yolo:
             th = box[..., 3]
 
             cx = np.tile(np.arange(grid_w), grid_h).reshape(grid_h, grid_w)
-            cy = np.tile(np.arange(grid_h), grid_w).reshape(
-                grid_w, grid_h).T
+            cy = np.tile(np.arange(grid_h), grid_w)
+            cy = cy.reshape(grid_w, grid_h).T
 
             cx = np.tile(cx[..., np.newaxis], (1, 1, anchor_boxes))
             cy = np.tile(cy[..., np.newaxis], (1, 1, anchor_boxes))
@@ -86,8 +86,9 @@ class Yolo:
         for bc, bcp in zip(box_confidences, box_class_probs):
             box_scores_full.append(bc * bcp)
 
-        box_scores_list = [bs.reshape(-1, bs.shape[-1])
-                            for bs in box_scores_full]
+        box_scores_list = [
+            bs.reshape(-1, bs.shape[-1]) for bs in box_scores_full
+        ]
         box_scores_concat = np.concatenate(box_scores_list, axis=0)
 
         box_classes = np.argmax(box_scores_concat, axis=-1)
@@ -149,7 +150,8 @@ class Yolo:
 
             box_predictions.append(cls_boxes[keep])
             predicted_box_classes.append(
-                np.full(keep.shape[0], cls, dtype=np.int32))
+                np.full(keep.shape[0], cls, dtype=np.int32)
+            )
             predicted_box_scores.append(cls_scores[keep])
 
         box_predictions = np.concatenate(box_predictions, axis=0)
@@ -186,8 +188,8 @@ class Yolo:
         for img in images:
             image_shapes.append(img.shape[:2])
 
-            resized = cv2.resize(img, (input_w, input_h),
-                                  interpolation=cv2.INTER_CUBIC)
+            resized = cv2.resize(
+                img, (input_w, input_h), interpolation=cv2.INTER_CUBIC)
             rescaled = resized / 255.0
             pimages.append(rescaled)
 
@@ -195,3 +197,4 @@ class Yolo:
         image_shapes = np.array(image_shapes)
 
         return pimages, image_shapes
+  
