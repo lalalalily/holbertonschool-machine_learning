@@ -1,21 +1,29 @@
-@staticmethod
-    def load_images(folder_path):
-        """
-        folder_path: a string representing the path to the folder holding
-            all the images to load
+#!/usr/bin/env python3
+"""Yolo class - preprocess images"""
+import numpy as np
+import tensorflow.keras as K
+import glob
+import cv2
+import os
 
-        Returns: (images, image_paths)
-            images: a list of images as numpy.ndarrays
-            image_paths: a list of paths to the individual images in
-                images
-        """
-        valid_ext = ('.jpg', '.jpeg', '.png', '.bmp')
 
-        image_paths = sorted(
-            p for p in glob.glob(os.path.join(folder_path, '*'))
-            if os.path.isfile(p) and p.lower().endswith(valid_ext)
-        )
-        images = [cv2.imread(image_path) for image_path in image_paths]
+class Yolo:
+    """Uses the Yolo v3 algorithm to perform object detection"""
 
-        return images, image_paths
-    
+    def __init__(self, model_path, classes_path, class_t, nms_t, anchors):
+        """Class constructor"""
+        self.model = K.models.load_model(model_path)
+        with open(classes_path, 'r') as f:
+            self.class_names = [line.strip() for line in f]
+        self.class_t = class_t
+        self.nms_t = nms_t
+        self.anchors = anchors
+
+    @staticmethod
+    def sigmoid(x):
+        """Sigmoid activation function"""
+        return 1 / (1 + np.exp(-x))
+
+    def process_outputs(self, outputs, image_size):
+        """Process Darknet outputs"""
+        boxes = []
