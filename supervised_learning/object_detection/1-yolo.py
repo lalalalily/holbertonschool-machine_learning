@@ -53,37 +53,39 @@ class Yolo:
         box_class_probs = []
 
         image_height, image_width = image_size[0], image_size[1]
-        input_height = self.model.input.shape[1]
-        input_width = self.model.input.shape[2]
+        input_width = int(self.model.input.shape[1])
+        input_height = int(self.model.input.shape[2])
 
         for i, output in enumerate(outputs):
             grid_height, grid_width, anchor_boxes, _ = output.shape
 
-            # Get predicted offsets (tx, ty, tw, th)
-            tx = output[..., 0]
-            ty = output[..., 1]
-            tw = output[..., 2]
-            th = output[..., 3]
+            # Predicted bounding box offsets
+            t_x = output[..., 0]
+            t_y = output[..., 1]
+            t_w = output[..., 2]
+            t_h = output[..., 3]
 
             # Sigmoid activation on center offsets
-            sig_tx = 1 / (1 + np.exp(-tx))
-            sig_ty = 1 / (1 + np.exp(-ty))
+            sig_tx = 1 / (1 + np.exp(-t_x))
+            sig_ty = 1 / (1 + np.exp(-t_y))
 
-            # Create grid coordinates (cx, cy)
-            cx, cy = np.meshgrid(np.arange(grid_width), np.arange(grid_height))
-            cx = np.expand_dims(cx, axis=-1)
-            cy = np.expand_dims(cy, axis=-1)
+            # Grid coordinates
+            cx = np.tile(np.arange(0, grid_width), (grid_height, 1))
+            cx = np.tile(cx[:, :, np.newaxis], (1, 1, anchor_boxes))
 
-            # Center coordinates normalized relative to grid
-            bx = (sig_tx + cx) / grid_width
-            by = (sig_ty + cy) / grid_height
+            cy = np.tile(np.arange(0, grid_height), (grid_width, 1)).T
+            cy = np.tile(cy[:, :, np.newaxis], (1, 1, anchor_boxes))
 
-            # Anchor dimensions scaled relative to model input size
+            # Anchor dimensions
             pw = self.anchors[i, :, 0]
             ph = self.anchors[i, :, 1]
 
-            bw = (pw * np.exp(tw)) / input_width
-            bh = (ph * np.exp(th)) / input_height
+            # Center coordinates & dimensions normalized relative to grid/model input
+            bx = (sig_tx + cx) / grid_width
+            by = (sig_ty + cy) / grid_height
+
+            bw = (pw * np.exp(t_w)) / input_width
+            bh = (ph * np.exp(t_h)) / input_height
 
             # Corner coordinates scaled to original image dimensions
             x1 = (bx - bw / 2) * image_width
@@ -98,11 +100,11 @@ class Yolo:
             box[..., 3] = y2
             boxes.append(box)
 
-            # Box confidence with sigmoid activation
+            # Box confidence
             confidence = 1 / (1 + np.exp(-output[..., 4:5]))
             box_confidences.append(confidence)
 
-            # Box class probabilities with sigmoid activation
+            # Box class probabilities
             class_prob = 1 / (1 + np.exp(-output[..., 5:]))
             box_class_probs.append(class_prob)
 
