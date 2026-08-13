@@ -43,10 +43,10 @@ class Yolo:
         Returns:
             tuple of (boxes, box_confidences, box_class_probs):
                 boxes: list of numpy.ndarrays of shape (grid_height, grid_width,
-                       anchor_boxes, 4) containing boundary boxes (x1, y1, x2, y2)
+                       anchor_boxes, 4) containing boundary boxes (x1, y1)
                        relative to original image.
                 box_confidences: list of numpy.ndarrays containing box confidences.
-                box_class_probs: list of numpy.ndarrays containing class probabilities.
+                box_class_probs: list of numpy.ndarrays containing class.
         """
         boxes = []
         box_confidences = []
@@ -80,7 +80,7 @@ class Yolo:
             pw = self.anchors[i, :, 0]
             ph = self.anchors[i, :, 1]
 
-            # Center coordinates & dimensions normalized relative to grid/model input
+            # Center coordinates & dimensions normalized relative to grid/model
             bx = (sig_tx + cx) / grid_width
             by = (sig_ty + cy) / grid_height
 
