@@ -229,4 +229,3 @@ class NST:
                 style_output, gram_target)
 
         return style_cost
-    
