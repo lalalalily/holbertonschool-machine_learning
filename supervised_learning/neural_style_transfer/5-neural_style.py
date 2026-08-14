@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Defines the NST class that performs tasks for neural style transfer"""
 
-import shutil
 import numpy as np
 import tensorflow as tf
 
@@ -92,10 +91,7 @@ class NST:
             include_top=False,
             weights='imagenet'
         )
-
-        shutil.rmtree("vgg_base_model", ignore_errors=True)
         vgg.save("vgg_base_model")
-
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
         }
@@ -130,4 +126,107 @@ class NST:
                 calculated
 
         returns:
-            a tf.Tensor of
+            a tf.Tensor of shape (1, c, c) containing the gram matrix
+            of input_layer
+        """
+        if not isinstance(input_layer, (tf.Tensor, tf.Variable)) or \
+                len(input_layer.shape) != 4:
+            raise TypeError("input_layer must be a tensor of rank 4")
+
+        _, h, w, c = input_layer.shape
+
+        F = tf.reshape(input_layer, (h * w, c))
+        n = tf.shape(F)[0]
+
+        gram = tf.matmul(F, F, transpose_a=True)
+        gram = tf.expand_dims(gram, axis=0)
+        gram /= tf.cast(n, tf.float32)
+
+        return gram
+
+    def generate_features(self):
+        """
+        Extracts the features used to calculate neural style cost
+
+        Sets the public instance attributes:
+            gram_style_features - a list of gram matrices calculated
+                from the style layer outputs of the style image
+            content_feature - the content layer output of the
+                content image
+        """
+        preprocess = tf.keras.applications.vgg19.preprocess_input
+
+        style_image = preprocess(self.style_image * 255)
+        content_image = preprocess(self.content_image * 255)
+
+        style_features = self.model(style_image)[:-1]
+        content_feature = self.model(content_image)[-1]
+
+        self.gram_style_features = [
+            self.gram_matrix(style_output) for style_output in style_features
+        ]
+        self.content_feature = content_feature
+
+    def layer_style_cost(self, style_output, gram_target):
+        """
+        Calculates the style cost for a single layer
+
+        parameters:
+            style_output [tf.Tensor of shape (1, h, w, c)]:
+                contains the layer style output of the generated image
+            gram_target [tf.Tensor of shape (1, c, c)]:
+                the gram matrix of the target style output for
+                that layer
+
+        returns:
+            the layer's style cost
+        """
+        if not isinstance(style_output, (tf.Tensor, tf.Variable)) or \
+                len(style_output.shape) != 4:
+            raise TypeError("style_output must be a tensor of rank 4")
+
+        c = style_output.shape[-1]
+        gram_valid = (
+            isinstance(gram_target, (tf.Tensor, tf.Variable)) and
+            len(gram_target.shape) == 3 and
+            gram_target.shape[0] == 1 and
+            gram_target.shape[1] == c and
+            gram_target.shape[2] == c
+        )
+        if not gram_valid:
+            raise TypeError(
+                "gram_target must be a tensor of shape [1, {}, {}]".format(
+                    c, c))
+
+        gram_style = self.gram_matrix(style_output)
+
+        return tf.reduce_mean(tf.square(gram_style - gram_target))
+
+    def style_cost(self, style_outputs):
+        """
+        Calculates the style cost for the generated image
+
+        parameters:
+            style_outputs [list of tf.Tensor]:
+                the style outputs for the generated image
+
+        returns:
+            the style cost
+        """
+        length = len(self.style_layers)
+        if not isinstance(style_outputs, list) or \
+                len(style_outputs) != length:
+            raise TypeError(
+                "style_outputs must be a list with a length of {}".format(
+                    length))
+
+        weight = 1 / length
+        style_cost = 0
+
+        for style_output, gram_target in zip(
+                style_outputs, self.gram_style_features):
+            style_cost += weight * self.layer_style_cost(
+                style_output, gram_target)
+
+        return style_cost
+        
