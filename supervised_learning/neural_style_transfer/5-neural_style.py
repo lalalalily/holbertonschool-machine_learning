@@ -108,4 +108,99 @@ class NST:
         Returns: a tf.Tensor of shape (1, c, c) containing the gram
             matrix of input_layer
         """
-        if not isinstance(input_layer, (tf.Tensor,
+        if not isinstance(input_layer, (tf.Tensor, tf.Variable)) or \
+                len(input_layer.shape) != 4:
+            raise TypeError("input_layer must be a tensor of rank 4")
+
+        channels = int(input_layer.shape[-1])
+        a = tf.reshape(input_layer, [-1, channels])
+        n = tf.shape(a)[0]
+        gram = tf.matmul(a, a, transpose_a=True)
+        return gram[tf.newaxis, :] / tf.cast(n, tf.float32)
+
+    def generate_features(self):
+        """Extracts the features used to calculate neural style cost
+
+        Sets the public instance attributes:
+            gram_style_features - a list of gram matrices calculated
+                from the style layer outputs of the style image
+            content_feature - the content layer output of the content
+                image
+        """
+        vgg19 = tf.keras.applications.vgg19
+        preprocess_style = vgg19.preprocess_input(self.style_image * 255)
+        preprocess_content = vgg19.preprocess_input(self.content_image * 255)
+
+        style_features = self.model(preprocess_style)[:-1]
+        content_feature = self.model(preprocess_content)[-1]
+
+        self.gram_style_features = [self.gram_matrix(feature) for
+                                     feature in style_features]
+        self.content_feature = content_feature
+
+    def layer_style_cost(self, style_output, gram_target):
+        """Calculates the style cost for a single layer
+
+        style_output - a tf.Tensor of shape (1, h, w, c) containing the
+            layer style output of the generated image
+        gram_target - a tf.Tensor of shape (1, c, c) the gram matrix of
+            the target style output for that layer
+
+        Returns: the layer's style cost
+        """
+        if not isinstance(style_output, (tf.Tensor, tf.Variable)) or \
+                len(style_output.shape) != 4:
+            raise TypeError("style_output must be a tensor of rank 4")
+
+        c = int(style_output.shape[-1])
+        if not isinstance(gram_target, (tf.Tensor, tf.Variable)) or \
+                gram_target.shape != (1, c, c):
+            raise TypeError(
+                "gram_target must be a tensor of shape [1, {}, {}]".format(
+                    c, c))
+
+        gram_style = self.gram_matrix(style_output)
+        return tf.reduce_mean(tf.square(gram_style - gram_target))
+
+    def style_cost(self, style_outputs):
+        """Calculates the style cost for generated image
+
+        style_outputs - a list of tf.Tensor style outputs for the
+            generated image
+
+        Each layer is weighted evenly, with weights summing to 1.
+
+        Returns: the style cost
+        """
+        length = len(self.style_layers)
+        if not isinstance(style_outputs, list) or \
+                len(style_outputs) != length:
+            raise TypeError(
+                "style_outputs must be a list with a length of {}".format(
+                    length))
+
+        weight = 1.0 / length
+        style_cost = 0
+        for style_output, gram_target in zip(style_outputs,
+                                              self.gram_style_features):
+            style_cost += weight * self.layer_style_cost(style_output,
+                                                           gram_target)
+
+        return style_cost
+
+    def content_cost(self, content_output):
+        """Calculates the content cost for the generated image
+
+        content_output - a tf.Tensor containing the content output for
+            the generated image
+
+        Returns: the content cost
+        """
+        s = self.content_feature.shape
+        if not isinstance(content_output, (tf.Tensor, tf.Variable)) or \
+                content_output.shape != s:
+            raise TypeError(
+                "content_output must be a tensor of shape {}".format(s))
+
+        return tf.reduce_mean(
+            tf.square(content_output - self.content_feature))
