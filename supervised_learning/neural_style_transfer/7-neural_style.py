@@ -91,6 +91,8 @@ class NST:
             include_top=False,
             weights='imagenet'
         )
+        if tf.io.gfile.exists("vgg_base_model"):
+            tf.io.gfile.rmtree("vgg_base_model")
         vgg.save("vgg_base_model")
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
@@ -252,3 +254,39 @@ class NST:
 
         return tf.reduce_mean(
             tf.square(content_output - self.content_feature))
+
+    def total_cost(self, generated_image):
+        """
+        Calculates the total cost for the generated image
+
+        parameters:
+            generated_image [tf.Tensor of shape (1, nh, nw, 3)]:
+                contains the generated image
+
+        returns:
+            (J, J_content, J_style)
+                J is the total cost
+                J_content is the content cost
+                J_style is the style cost
+        """
+        shape = self.content_image.shape
+        generated_valid = (
+            isinstance(generated_image, (tf.Tensor, tf.Variable)) and
+            generated_image.shape == shape
+        )
+        if not generated_valid:
+            raise TypeError(
+                "generated_image must be a tensor of shape {}".format(shape))
+
+        preprocess = tf.keras.applications.vgg19.preprocess_input
+        preprocessed = preprocess(generated_image * 255)
+
+        outputs = self.model(preprocessed)
+        style_outputs = outputs[:-1]
+        content_output = outputs[-1]
+
+        J_content = self.content_cost(content_output)
+        J_style = self.style_cost(style_outputs)
+        J = self.alpha * J_content + self.beta * J_style
+
+        return J, J_content, J_style
