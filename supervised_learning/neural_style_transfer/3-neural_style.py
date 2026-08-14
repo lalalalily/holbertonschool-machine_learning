@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Module that defines the NST class for neural style transfer"""
+"""Defines the NST class that performs tasks for neural style transfer"""
+
 import numpy as np
 import tensorflow as tf
 
 
 class NST:
-    """Performs tasks for neural style transfer"""
+    """Performs tasks for Neural Style Transfer"""
 
     style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1',
                     'block4_conv1', 'block5_conv1']
@@ -17,30 +18,20 @@ class NST:
 
         parameters:
             style_image [numpy.ndarray of shape (h, w, 3)]:
-                the image used as a style reference
+                image used as style reference
             content_image [numpy.ndarray of shape (h, w, 3)]:
-                the image used as a content reference
-            alpha [number]: the weight for content cost
-            beta [number]: the weight for style cost
+                image used as content reference
+            alpha [float]: weight for content cost
+            beta [float]: weight for style cost
         """
-        style_valid = (
-            isinstance(style_image, np.ndarray) and
-            len(style_image.shape) == 3 and
-            style_image.shape[2] == 3
-        )
-        if not style_valid:
+        if not isinstance(style_image, np.ndarray) or \
+                len(style_image.shape) != 3 or style_image.shape[2] != 3:
             raise TypeError(
                 "style_image must be a numpy.ndarray with shape (h, w, 3)")
-
-        content_valid = (
-            isinstance(content_image, np.ndarray) and
-            len(content_image.shape) == 3 and
-            content_image.shape[2] == 3
-        )
-        if not content_valid:
+        if not isinstance(content_image, np.ndarray) or \
+                len(content_image.shape) != 3 or content_image.shape[2] != 3:
             raise TypeError(
                 "content_image must be a numpy.ndarray with shape (h, w, 3)")
-
         if (not isinstance(alpha, (int, float))) or alpha < 0:
             raise TypeError("alpha must be a non-negative number")
         if (not isinstance(beta, (int, float))) or beta < 0:
@@ -62,19 +53,15 @@ class NST:
 
         parameters:
             image [numpy.ndarray of shape (h, w, 3)]:
-                the image to be scaled
+                image to be scaled
 
         returns:
             the scaled image as a tf.tensor of shape (1, h_new, w_new, 3)
             where max(h_new, w_new) == 512 and min(h_new, w_new) is scaled
             proportionately
         """
-        image_valid = (
-            isinstance(image, np.ndarray) and
-            len(image.shape) == 3 and
-            image.shape[2] == 3
-        )
-        if not image_valid:
+        if not isinstance(image, np.ndarray) or \
+                len(image.shape) != 3 or image.shape[2] != 3:
             raise TypeError(
                 "image must be a numpy.ndarray with shape (h, w, 3)")
 
@@ -89,6 +76,7 @@ class NST:
         image = image[tf.newaxis, :]
         image = tf.image.resize(
             image, size=(h_new, w_new), method='bicubic')
+
         image = image / 255
         image = tf.clip_by_value(image, 0, 1)
 
@@ -96,23 +84,21 @@ class NST:
 
     def load_model(self):
         """
-        Creates the model used to calculate cost
-
-        the model's input matches the VGG19 input, and its outputs are
-        the outputs of the layers listed in style_layers followed by
-        content_layer
-
-        saves the model in the instance attribute model
+        Creates the model used to calculate cost from the VGG19 Keras
+        base model, replacing MaxPooling2D layers with AveragePooling2D
         """
-        VGG19_model = tf.keras.applications.VGG19(
-            include_top=False, weights='imagenet')
-
-        VGG19_model.save("vgg_base_model")
+        vgg = tf.keras.applications.VGG19(
+            include_top=False,
+            weights='imagenet'
+        )
+        vgg.save("vgg_base_model")
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
         }
         vgg = tf.keras.models.load_model(
-            "vgg_base_model", custom_objects=custom_objects)
+            "vgg_base_model",
+            custom_objects=custom_objects
+        )
 
         style_outputs = []
         content_output = None
@@ -122,12 +108,12 @@ class NST:
                 style_outputs.append(layer.output)
             if layer.name == self.content_layer:
                 content_output = layer.output
-
             layer.trainable = False
 
         outputs = style_outputs + [content_output]
 
         self.model = tf.keras.models.Model(vgg.input, outputs)
+        return self.model
 
     @staticmethod
     def gram_matrix(input_layer):
@@ -148,13 +134,36 @@ class NST:
             raise TypeError("input_layer must be a tensor of rank 4")
 
         _, h, w, c = input_layer.shape
-        features = tf.reshape(input_layer, (h * w, c))
-        n = tf.cast(h * w, tf.float32)
-        gram = tf.matmul(features, features, transpose_a=True)
-        gram = tf.expand_dims(gram, axis=0)
 
-        return gram / n
+        F = tf.reshape(input_layer, (h * w, c))
+        n = tf.shape(F)[0]
+
+        gram = tf.matmul(F, F, transpose_a=True)
+        gram = tf.expand_dims(gram, axis=0)
+        gram /= tf.cast(n, tf.float32)
+
+        return gram
 
     def generate_features(self):
         """
         Extracts the features used to calculate neural style cost
+
+        Sets the public instance attributes:
+            gram_style_features - a list of gram matrices calculated
+                from the style layer outputs of the style image
+            content_feature - the content layer output of the
+                content image
+        """
+        preprocess = tf.keras.applications.vgg19.preprocess_input
+
+        style_image = preprocess(self.style_image * 255)
+        content_image = preprocess(self.content_image * 255)
+
+        style_features = self.model(style_image)[:-1]
+        content_feature = self.model(content_image)[-1]
+
+        self.gram_style_features = [
+            self.gram_matrix(style_output) for style_output in style_features
+        ]
+        self.content_feature = content_feature
+    
