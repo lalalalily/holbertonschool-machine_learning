@@ -272,6 +272,13 @@ class NST:
         returns:
             the variational cost
         """
+        valid = (
+            isinstance(generated_image, (tf.Tensor, tf.Variable)) and
+            len(generated_image.shape) in (3, 4)
+        )
+        if not valid:
+            raise TypeError("image must be a tensor of rank 3 or 4")
+
         return tf.reduce_sum(tf.image.total_variation(generated_image))
 
     def total_cost(self, generated_image):
@@ -321,12 +328,13 @@ class NST:
                 contains the generated image
 
         returns:
-            gradients, J_total, J_content, J_style
+            gradients, J_total, J_content, J_style, J_var
                 gradients is a tf.Tensor containing the gradients for
                     the generated image
                 J_total is the total cost for the generated image
                 J_content is the content cost for the generated image
                 J_style is the style cost for the generated image
+                J_var is the variational cost for the generated image
         """
         shape = self.content_image.shape
         generated_valid = (
@@ -339,11 +347,12 @@ class NST:
 
         with tf.GradientTape() as tape:
             tape.watch(generated_image)
-            J_total, J_content, J_style = self.total_cost(generated_image)
+            J_total, J_content, J_style, J_var = self.total_cost(
+                generated_image)
 
         gradients = tape.gradient(J_total, generated_image)
 
-        return gradients, J_total, J_content, J_style
+        return gradients, J_total, J_content, J_style, J_var
 
     def generate_image(
             self, iterations=1000, step=None, lr=0.01,
@@ -397,7 +406,7 @@ class NST:
         best_image = None
 
         for i in range(iterations + 1):
-            grads, J_total, J_content, J_style = self.compute_grads(
+            grads, J_total, J_content, J_style, J_var = self.compute_grads(
                 generated_image)
 
             if J_total < best_cost:
@@ -406,7 +415,8 @@ class NST:
 
             if step is not None and (i % step == 0 or i == iterations):
                 print("Cost at iteration {}: {}, content {}, "
-                      "style {}".format(i, J_total, J_content, J_style))
+                      "style {}, var {}".format(
+                          i, J_total, J_content, J_style, J_var))
 
             if i < iterations:
                 optimizer.apply_gradients([(grads, generated_image)])
