@@ -86,8 +86,10 @@ class NST:
         Creates the model used to calculate cost from the VGG19 Keras
         base model, replacing MaxPooling2D layers with AveragePooling2D
         """
-        vgg = tf.keras.applications.VGG19(include_top=False,
-                                           weights='imagenet')
+        vgg = tf.keras.applications.VGG19(
+            include_top=False,
+            weights='imagenet'
+        )
         vgg.save("vgg_base_model")
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
