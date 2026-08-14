@@ -166,4 +166,3 @@ class NST:
             self.gram_matrix(style_output) for style_output in style_features
         ]
         self.content_feature = content_feature
-    
