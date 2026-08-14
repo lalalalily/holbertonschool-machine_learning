@@ -96,7 +96,7 @@ class NST:
             "vgg_base_model",
             custom_objects=custom_objects
         )
-                             
+                          
         style_outputs = []
         content_output = None
 
