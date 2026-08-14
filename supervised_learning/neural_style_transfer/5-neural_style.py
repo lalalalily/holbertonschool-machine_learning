@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Neural Style Transfer"""
+"""Defines the NST class that performs tasks for neural style transfer"""
+
+import shutil
 import numpy as np
 import tensorflow as tf
 
@@ -8,25 +10,27 @@ class NST:
     """Performs tasks for Neural Style Transfer"""
 
     style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1',
-                     'block4_conv1', 'block5_conv1']
+                    'block4_conv1', 'block5_conv1']
     content_layer = 'block5_conv2'
 
     def __init__(self, style_image, content_image, alpha=1e4, beta=1):
-        """Class constructor
+        """
+        Class constructor
 
-        style_image - the image used as a style reference,
-            stored as a numpy.ndarray
-        content_image - the image used as a content reference,
-            stored as a numpy.ndarray
-        alpha - the weight for content cost
-        beta - the weight for style cost
+        parameters:
+            style_image [numpy.ndarray of shape (h, w, 3)]:
+                image used as style reference
+            content_image [numpy.ndarray of shape (h, w, 3)]:
+                image used as content reference
+            alpha [float]: weight for content cost
+            beta [float]: weight for style cost
         """
         if not isinstance(style_image, np.ndarray) or \
-                style_image.ndim != 3 or style_image.shape[2] != 3:
+                len(style_image.shape) != 3 or style_image.shape[2] != 3:
             raise TypeError(
                 "style_image must be a numpy.ndarray with shape (h, w, 3)")
         if not isinstance(content_image, np.ndarray) or \
-                content_image.ndim != 3 or content_image.shape[2] != 3:
+                len(content_image.shape) != 3 or content_image.shape[2] != 3:
             raise TypeError(
                 "content_image must be a numpy.ndarray with shape (h, w, 3)")
         if (not isinstance(alpha, (int, float))) or alpha < 0:
@@ -34,52 +38,71 @@ class NST:
         if (not isinstance(beta, (int, float))) or beta < 0:
             raise TypeError("beta must be a non-negative number")
 
-        tf.enable_eager_execution()
         self.style_image = self.scale_image(style_image)
         self.content_image = self.scale_image(content_image)
         self.alpha = alpha
         self.beta = beta
+
         self.load_model()
         self.generate_features()
 
     @staticmethod
     def scale_image(image):
-        """Rescales an image such that its pixels values are between 0
-        and 1 and its largest side is 512 pixels
-
-        image - a numpy.ndarray of shape (h, w, 3) containing the image
-            to be scaled
-
-        Returns: the scaled image
         """
-        if not isinstance(image, np.ndarray) or image.ndim != 3 or \
-                image.shape[2] != 3:
+        Rescales an image such that its pixel values are between 0 and 1
+        and its largest side is 512 pixels
+
+        parameters:
+            image [numpy.ndarray of shape (h, w, 3)]:
+                image to be scaled
+
+        returns:
+            the scaled image as a tf.tensor of shape (1, h_new, w_new, 3)
+            where max(h_new, w_new) == 512 and min(h_new, w_new) is scaled
+            proportionately
+        """
+        if not isinstance(image, np.ndarray) or \
+                len(image.shape) != 3 or image.shape[2] != 3:
             raise TypeError(
                 "image must be a numpy.ndarray with shape (h, w, 3)")
 
         h, w, _ = image.shape
-        if w > h:
-            w_new = 512
-            h_new = int(h * 512 / w)
-        else:
+        if h > w:
             h_new = 512
-            w_new = int(w * 512 / h)
+            w_new = int(w * (512 / h))
+        else:
+            w_new = 512
+            h_new = int(h * (512 / w))
 
         image = image[tf.newaxis, :]
-        image = tf.image.resize_bicubic(image, (h_new, w_new))
-        image = tf.clip_by_value(image / 255, 0, 1)
+        image = tf.image.resize(
+            image, size=(h_new, w_new), method='bicubic')
+
+        image = image / 255
+        image = tf.clip_by_value(image, 0, 1)
+
         return image
 
     def load_model(self):
-        """Loads the model for neural style transfer, using the VGG19
-        base model with AveragePooling2D layers instead of MaxPooling2D
         """
-        vgg = tf.keras.applications.VGG19(include_top=False,
-                                           weights='imagenet')
-        vgg.save("vgg_base.h5")
-        custom_objects = {'MaxPooling2D': tf.keras.layers.AveragePooling2D}
-        vgg = tf.keras.models.load_model("vgg_base.h5",
-                                          custom_objects=custom_objects)
+        Creates the model used to calculate cost from the VGG19 Keras
+        base model, replacing MaxPooling2D layers with AveragePooling2D
+        """
+        vgg = tf.keras.applications.VGG19(
+            include_top=False,
+            weights='imagenet'
+        )
+
+        shutil.rmtree("vgg_base_model", ignore_errors=True)
+        vgg.save("vgg_base_model")
+
+        custom_objects = {
+            'MaxPooling2D': tf.keras.layers.AveragePooling2D
+        }
+        vgg = tf.keras.models.load_model(
+            "vgg_base_model",
+            custom_objects=custom_objects
+        )
 
         style_outputs = []
         content_output = None
@@ -89,28 +112,22 @@ class NST:
                 style_outputs.append(layer.output)
             if layer.name == self.content_layer:
                 content_output = layer.output
-
             layer.trainable = False
 
         outputs = style_outputs + [content_output]
 
-        model = tf.keras.models.Model(vgg.input, outputs)
-        self.model = model
+        self.model = tf.keras.models.Model(vgg.input, outputs)
+        return self.model
 
     @staticmethod
     def gram_matrix(input_layer):
-        """Calculates gram matrices
-
-        input_layer - an instance of tf.Tensor or tf.Variable of shape
-            (1, h, w, c) containing the layer output whose gram matrix
-            should be calculated
-
-        Returns: a tf.Tensor of shape (1, c, c) containing the gram
-            matrix of input_layer
         """
-        if not isinstance(input_layer, (tf.Tensor, tf.Variable)) or \
-                len(input_layer.shape) != 4:
-            raise TypeError("input_layer must be a tensor of rank 4")
+        Calculates the gram matrix of a layer
 
-        channels = int(input_layer.shape[-1])
-        a = tf.reshape(input_layer, [-1, channels])
+        parameters:
+            input_layer [tf.Tensor or tf.Variable of shape (1, h, w, c)]:
+                contains the layer output whose gram matrix should be
+                calculated
+
+        returns:
+            a tf.Tensor of
