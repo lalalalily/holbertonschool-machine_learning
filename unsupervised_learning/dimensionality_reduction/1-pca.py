@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Module that performs PCA on a dataset to a specified dimensionality.
+"""
 import numpy as np
 
 
