@@ -29,5 +29,54 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5,
         failure
         pi is a numpy.ndarray of shape (k,) containing the priors
             for each cluster
-        m is
-    
+        m is a numpy.ndarray of shape (k, d) containing the
+            centroid means for each cluster
+        S is a numpy.ndarray of shape (k, d, d) containing the
+            covariance matrices for each cluster
+        g is a numpy.ndarray of shape (k, n) containing the
+            probabilities for each data point in each cluster
+        l is the log likelihood of the model
+    """
+    if not isinstance(X, np.ndarray) or len(X.shape) != 2:
+        return None, None, None, None, None
+    if not isinstance(k, int) or k <= 0:
+        return None, None, None, None, None
+    if not isinstance(iterations, int) or iterations <= 0:
+        return None, None, None, None, None
+    if not isinstance(tol, float) or tol < 0:
+        return None, None, None, None, None
+    if not isinstance(verbose, bool):
+        return None, None, None, None, None
+
+    pi, m, S = initialize(X, k)
+    if pi is None or m is None or S is None:
+        return None, None, None, None, None
+
+    g, l_prev = expectation(X, pi, m, S)
+    if g is None or l_prev is None:
+        return None, None, None, None, None
+
+    if verbose:
+        print('Log Likelihood after 0 iterations: {}'.format(
+            round(l_prev, 5)))
+
+    for i in range(1, iterations + 1):
+        pi, m, S = maximization(X, g)
+        if pi is None or m is None or S is None:
+            return None, None, None, None, None
+
+        g, l_curr = expectation(X, pi, m, S)
+        if g is None or l_curr is None:
+            return None, None, None, None, None
+
+        diff = abs(l_curr - l_prev)
+        l_prev = l_curr
+
+        if verbose and (i % 10 == 0 or diff <= tol or i == iterations):
+            print('Log Likelihood after {} iterations: {}'.format(
+                i, round(l_curr, 5)))
+
+        if diff <= tol:
+            break
+
+    return pi, m, S, g, l_prev
