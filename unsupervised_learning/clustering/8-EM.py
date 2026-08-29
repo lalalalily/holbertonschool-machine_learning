@@ -29,27 +29,5 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5,
         failure
         pi is a numpy.ndarray of shape (k,) containing the priors
             for each cluster
-        m is a numpy.ndarray of shape (k, d) containing the
-            centroid means for each cluster
-        S is a numpy.ndarray of shape (k, d, d) containing the
-            covariance matrices for each cluster
-        g is a numpy.ndarray of shape (k, n) containing the
-            probabilities for each data point in each cluster
-        l is the log likelihood of the model
-    """
-    if not isinstance(X, np.ndarray) or len(X.shape) != 2:
-        return None, None, None, None, None
-    if not isinstance(k, int) or k <= 0:
-        return None, None, None, None, None
-    if not isinstance(iterations, int) or iterations <= 0:
-        return None, None, None, None, None
-    if not isinstance(tol, float) or tol < 0:
-        return None, None, None, None, None
-    if not isinstance(verbose, bool):
-        return None, None, None, None, None
-
-    pi, m, S = initialize(X, k)
-    if pi is None or m is None or S is None:
-        return None, None, None, None, None
-
-    g, l_prev = expectation(X, pi, m,
+        m is
+    
