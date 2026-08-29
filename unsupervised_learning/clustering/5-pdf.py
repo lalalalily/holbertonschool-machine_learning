@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""PDF"""
+"""
+This module contains a function that calculates the probability
+density function of a Gaussian distribution for a given data set,
+mean, and covariance matrix.
+"""
 import numpy as np
 
 
@@ -45,3 +49,4 @@ def pdf(X, m, S):
     P = np.maximum(P, 1e-300)
 
     return P
+    
