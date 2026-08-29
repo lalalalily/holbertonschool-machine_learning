@@ -10,7 +10,7 @@ maximization = __import__('7-maximization').maximization
 
 
 def expectation_maximization(X, k, iterations=1000, tol=1e-5,
-                               verbose=False):
+                              verbose=False):
     """
     Performs the expectation maximization for a GMM
 
