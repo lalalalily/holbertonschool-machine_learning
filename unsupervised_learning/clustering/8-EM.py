@@ -10,7 +10,7 @@ maximization = __import__('7-maximization').maximization
 
 
 def expectation_maximization(X, k, iterations=1000, tol=1e-5,
-                              verbose=False):
+                             verbose=False):
     """
     Performs the expectation maximization for a GMM
 
@@ -52,31 +52,4 @@ def expectation_maximization(X, k, iterations=1000, tol=1e-5,
     if pi is None or m is None or S is None:
         return None, None, None, None, None
 
-    g, l_prev = expectation(X, pi, m, S)
-    if g is None or l_prev is None:
-        return None, None, None, None, None
-
-    if verbose:
-        print('Log Likelihood after 0 iterations: {}'.format(
-            round(l_prev, 5)))
-
-    for i in range(1, iterations + 1):
-        pi, m, S = maximization(X, g)
-        if pi is None or m is None or S is None:
-            return None, None, None, None, None
-
-        g, l_curr = expectation(X, pi, m, S)
-        if g is None or l_curr is None:
-            return None, None, None, None, None
-
-        diff = abs(l_curr - l_prev)
-        l_prev = l_curr
-
-        if verbose and (i % 10 == 0 or diff <= tol or i == iterations):
-            print('Log Likelihood after {} iterations: {}'.format(
-                i, round(l_curr, 5)))
-
-        if diff <= tol:
-            break
-
-    return pi, m, S, g, l_prev
+    g, l_prev = expectation(X, pi, m,
