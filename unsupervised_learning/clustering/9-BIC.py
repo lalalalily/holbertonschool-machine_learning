@@ -65,7 +65,7 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
     ks = range(kmin, kmax + 1)
     num_k = len(ks)
 
-    l = np.zeros(num_k)
+    log_likelihoods = np.zeros(num_k)
     b = np.zeros(num_k)
     results = []
 
@@ -79,11 +79,11 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
 
         p = (k - 1) + k * d + k * d * (d + 1) / 2
 
-        l[idx] = log_l
+        log_likelihoods[idx] = log_l
         b[idx] = p * np.log(n) - 2 * log_l
 
     best_idx = np.argmin(b)
     best_k = kmin + best_idx
     best_result = results[best_idx]
 
-    return best_k, best_result, l, b
+    return best_k, best_result, log_likelihoods, b
