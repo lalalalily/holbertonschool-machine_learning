@@ -6,7 +6,7 @@ GP = __import__('2-gp').GaussianProcess
 
 
 class BayesianOptimization:
-    """Performs Bayesian optimization on a noiseless 1D Gaussian
+    """Performs Bayesian optimzation on a noiseless 1D Gaussian
     process.
     """
     def __init__(self, f, X_init, Y_init, bounds, ac_samples, l=1,
