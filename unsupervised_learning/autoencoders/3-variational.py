@@ -14,13 +14,13 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     z_mean = keras.layers.Dense(latent_dims, activation=None)(x)
     z_log_sigma = keras.layers.Dense(latent_dims, activation=None)(x)
 
-    # Reparameterization Trick
+    # Reparameterization trick
     def sampling(args):
         mu, log_sig = args
         epsilon = keras.backend.random_normal(
             shape=keras.backend.shape(mu)
         )
-        return mu + keras.backend.exp(log_sig / 2) * epsilon
+        return mu + keras.backend.exp(log_sig / 2.0) * epsilon
 
     z = keras.layers.Lambda(sampling)([z_mean, z_log_sigma])
     encoder = keras.Model(inputs, [z, z_mean, z_log_sigma], name='encoder')
@@ -33,20 +33,21 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     outputs = keras.layers.Dense(input_dims, activation='sigmoid')(x_dec)
     decoder = keras.Model(latent_inputs, outputs, name='decoder')
 
-    # Autoencoder
+    # Full VAE Model
     auto_outputs = decoder(z)
     auto = keras.Model(inputs, auto_outputs, name='auto')
 
-    # KL Divergence Loss via add_loss
-    kl_loss = -0.5 * keras.backend.sum(
-        1 + z_log_sigma - keras.backend.square(z_mean) -
-        keras.backend.exp(z_log_sigma),
-        axis=-1
-    )
-    kl_loss = keras.backend.mean(kl_loss)
-    auto.add_loss(kl_loss)
+    # Custom VAE Loss (Reconstruction + KL Divergence)
+    def vae_loss(inputs, outputs):
+        recon_loss = keras.losses.binary_crossentropy(inputs, outputs)
+        recon_loss = recon_loss * input_dims
+        kl_loss = -0.5 * keras.backend.sum(
+            1 + z_log_sigma - keras.backend.square(z_mean) -
+            keras.backend.exp(z_log_sigma),
+            axis=-1
+        )
+        return keras.backend.mean(recon_loss + kl_loss)
 
-    # Standard compile expected by checker tests
-    auto.compile(optimizer='adam', loss='binary_crossentropy')
+    auto.compile(optimizer='adam', loss=vae_loss)
 
     return encoder, decoder, auto
