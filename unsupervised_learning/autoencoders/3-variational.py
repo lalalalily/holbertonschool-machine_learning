@@ -1,53 +1,62 @@
 #!/usr/bin/env python3
-"""Variational Autoencoder module."""
+"""Variational Autoencoder"""
 import tensorflow.keras as keras
+import tensorflow.keras.backend as K
 
 
 def autoencoder(input_dims, hidden_layers, latent_dims):
-    """Creates a variational autoencoder network."""
-    # Encoder
-    inputs = keras.Input(shape=(input_dims,))
-    x = inputs
+    """Creates a variational autoencoder
+    input_dims is an integer containing the dimensions of the model
+    input
+    hidden_layers is a list containing the number of nodes for each
+    hidden layer in the encoder, respectively
+    the hidden layers should be reversed for the decoder
+    latent_dims is an integer containing the dimensions of the
+    latent space representation
+    Returns: encoder, decoder, auto
+    encoder is the encoder model, which should output the latent
+    representation, the mean, and the log variance, respectively
+    decoder is the decoder model
+    auto is the full autoencoder model
+    """
+    def sampling(args):
+        """Samples from the latent distribution using the
+        reparameterization trick
+        """
+        mu, log_sig = args
+        batch = K.shape(mu)[0]
+        dims = K.shape(mu)[1]
+        epsilon = K.random_normal(shape=(batch, dims))
+        return mu + K.exp(log_sig / 2) * epsilon
+
+    encoder_inputs = keras.Input(shape=(input_dims,))
+    x = encoder_inputs
     for nodes in hidden_layers:
         x = keras.layers.Dense(nodes, activation='relu')(x)
+    mu = keras.layers.Dense(latent_dims, activation=None)(x)
+    log_sig = keras.layers.Dense(latent_dims, activation=None)(x)
+    z = keras.layers.Lambda(sampling)([mu, log_sig])
+    encoder = keras.Model(encoder_inputs, [z, mu, log_sig])
 
-    z_mean = keras.layers.Dense(latent_dims, activation=None)(x)
-    z_log_sigma = keras.layers.Dense(latent_dims, activation=None)(x)
-
-    # Sampling function
-    def sampling(args):
-        mu, log_sig = args
-        epsilon = keras.backend.random_normal(
-            shape=keras.backend.shape(mu)
-        )
-        return mu + keras.backend.exp(log_sig / 2) * epsilon
-
-    z = keras.layers.Lambda(sampling)([z_mean, z_log_sigma])
-    encoder = keras.Model(inputs, [z, z_mean, z_log_sigma], name='encoder')
-
-    # Decoder
-    latent_inputs = keras.Input(shape=(latent_dims,))
-    x_dec = latent_inputs
+    decoder_inputs = keras.Input(shape=(latent_dims,))
+    x = decoder_inputs
     for nodes in reversed(hidden_layers):
-        x_dec = keras.layers.Dense(nodes, activation='relu')(x_dec)
-    outputs = keras.layers.Dense(input_dims, activation='sigmoid')(x_dec)
-    decoder = keras.Model(latent_inputs, outputs, name='decoder')
+        x = keras.layers.Dense(nodes, activation='relu')(x)
+    decoder_outputs = keras.layers.Dense(
+        input_dims, activation='sigmoid')(x)
+    decoder = keras.Model(decoder_inputs, decoder_outputs)
 
-    # Full VAE: Call encoder on inputs and feed the sampled output (z) to decoder
-    encoder_outputs = encoder(inputs)
-    auto_outputs = decoder(encoder_outputs[0])
-    auto = keras.Model(inputs, auto_outputs, name='auto')
+    z, mu, log_sig = encoder(encoder_inputs)
+    auto_outputs = decoder(z)
+    auto = keras.Model(encoder_inputs, auto_outputs)
 
-    # Loss Definition
-    def vae_loss(x, x_decoded_mean):
-        recon_loss = keras.losses.binary_crossentropy(x, x_decoded_mean)
-        recon_loss *= input_dims
-        kl_loss = -0.5 * keras.backend.sum(
-            1 + z_log_sigma - keras.backend.square(z_mean) -
-            keras.backend.exp(z_log_sigma),
-            axis=-1
-        )
-        return keras.backend.mean(recon_loss + kl_loss)
+    def vae_loss(inputs, outputs):
+        """Computes the VAE loss (reconstruction + KL divergence)"""
+        r_loss = keras.losses.binary_crossentropy(inputs, outputs)
+        r_loss *= input_dims
+        kl_loss = 1 + log_sig - K.square(mu) - K.exp(log_sig)
+        kl_loss = -0.5 * K.sum(kl_loss, axis=-1)
+        return K.mean(r_loss + kl_loss)
 
     auto.compile(optimizer='adam', loss=vae_loss)
 
