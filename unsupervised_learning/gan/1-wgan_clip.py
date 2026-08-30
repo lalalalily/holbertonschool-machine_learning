@@ -16,15 +16,6 @@ class WGAN_clip(keras.Model):
                  learning_rate=.005):
         """
         Initializes the WGAN_clip model.
-
-        Parameters:
-            generator: The generator Keras model.
-            discriminator: The discriminator Keras model.
-            latent_generator: Function generating latent vectors.
-            real_examples: Tensor containing training data samples.
-            batch_size: Number of samples per training batch.
-            disc_iter: Discriminator updates per generator update.
-            learning_rate: Learning rate for Adam optimizers.
         """
         super().__init__()
         self.latent_generator = latent_generator
@@ -88,12 +79,6 @@ class WGAN_clip(keras.Model):
     def train_step(self, useless_argument):
         """
         Executes one training step over discriminator and generator networks.
-
-        Parameters:
-            useless_argument: Default argument passed by Keras fit method.
-
-        Returns:
-            dict: Dictionary containing discriminator and generator losses.
         """
         # Train Discriminator for disc_iter steps
         for _ in range(self.disc_iter):
@@ -101,15 +86,9 @@ class WGAN_clip(keras.Model):
             fake_sample = self.get_fake_sample(training=True)
 
             with tf.GradientTape() as disc_tape:
-                disc_real = self.discriminator(
-                    real_sample, training=True
-                )
-                disc_fake = self.discriminator(
-                    fake_sample, training=True
-                )
-                discr_loss = self.discriminator.loss(
-                    disc_fake, disc_real
-                )
+                disc_real = self.discriminator(real_sample, training=True)
+                disc_fake = self.discriminator(fake_sample, training=True)
+                discr_loss = self.discriminator.loss(disc_fake, disc_real)
 
             disc_grads = disc_tape.gradient(
                 discr_loss, self.discriminator.trainable_variables
@@ -122,13 +101,10 @@ class WGAN_clip(keras.Model):
             for var in self.discriminator.trainable_variables:
                 var.assign(tf.clip_by_value(var, -1.0, 1.0))
 
-        # Train Generator
-        fake_sample = self.get_fake_sample(training=True)
-
+        # Train Generator - MUST call get_fake_sample inside GradientTape context
         with tf.GradientTape() as gen_tape:
-            disc_fake = self.discriminator(
-                fake_sample, training=True
-            )
+            fake_sample = self.get_fake_sample(training=True)
+            disc_fake = self.discriminator(fake_sample, training=True)
             gen_loss = self.generator.loss(disc_fake)
 
         gen_grads = gen_tape.gradient(

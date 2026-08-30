@@ -16,15 +16,6 @@ class Simple_GAN(keras.Model):
                  learning_rate=.005):
         """
         Initializes the Simple_GAN model.
-
-        Parameters:
-            generator: The generator Keras model.
-            discriminator: The discriminator Keras model.
-            latent_generator: Function generating latent vectors.
-            real_examples: Tensor containing training data samples.
-            batch_size: Number of samples per training batch.
-            disc_iter: Discriminator updates per generator update.
-            learning_rate: Learning rate for Adam optimizers.
         """
         super().__init__()
         self.latent_generator = latent_generator
@@ -94,28 +85,16 @@ class Simple_GAN(keras.Model):
     def train_step(self, useless_argument):
         """
         Executes one training step over discriminator and generator networks.
-
-        Parameters:
-            useless_argument: Default argument passed by Keras fit method.
-
-        Returns:
-            dict: Dictionary containing discriminator and generator losses.
         """
-        # Train Discriminator for disc_iter steps
+        # Train Discriminator
         for _ in range(self.disc_iter):
             real_sample = self.get_real_sample()
             fake_sample = self.get_fake_sample(training=True)
 
             with tf.GradientTape() as disc_tape:
-                disc_real = self.discriminator(
-                    real_sample, training=True
-                )
-                disc_fake = self.discriminator(
-                    fake_sample, training=True
-                )
-                discr_loss = self.discriminator.loss(
-                    disc_real, disc_fake
-                )
+                disc_real = self.discriminator(real_sample, training=True)
+                disc_fake = self.discriminator(fake_sample, training=True)
+                discr_loss = self.discriminator.loss(disc_real, disc_fake)
 
             disc_grads = disc_tape.gradient(
                 discr_loss, self.discriminator.trainable_variables
@@ -124,13 +103,10 @@ class Simple_GAN(keras.Model):
                 zip(disc_grads, self.discriminator.trainable_variables)
             )
 
-        # Train Generator
-        fake_sample = self.get_fake_sample(training=True)
-
+        # Train Generator - MUST call get_fake_sample inside GradientTape context
         with tf.GradientTape() as gen_tape:
-            disc_fake = self.discriminator(
-                fake_sample, training=True
-            )
+            fake_sample = self.get_fake_sample(training=True)
+            disc_fake = self.discriminator(fake_sample, training=True)
             gen_loss = self.generator.loss(disc_fake)
 
         gen_grads = gen_tape.gradient(
