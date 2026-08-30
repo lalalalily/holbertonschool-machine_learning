@@ -25,16 +25,16 @@ def autoencoder(input_dims, hidden_layers, latent_dims, lambtha):
     x = encoder_inputs
     for nodes in hidden_layers:
         x = keras.layers.Dense(nodes, activation='relu')(x)
-    latent = keras.layers.Dense(latent_dims, activation='relu',
-                                 activity_regularizer=reg)(x)
+    latent = keras.layers.Dense(
+        latent_dims, activation='relu', activity_regularizer=reg)(x)
     encoder = keras.Model(encoder_inputs, latent)
 
     decoder_inputs = keras.Input(shape=(latent_dims,))
     x = decoder_inputs
     for nodes in reversed(hidden_layers):
         x = keras.layers.Dense(nodes, activation='relu')(x)
-    decoder_outputs = keras.layers.Dense(input_dims,
-                                          activation='sigmoid')(x)
+    decoder_outputs = keras.layers.Dense(
+        input_dims, activation='sigmoid')(x)
     decoder = keras.Model(decoder_inputs, decoder_outputs)
 
     auto_outputs = decoder(encoder(encoder_inputs))
