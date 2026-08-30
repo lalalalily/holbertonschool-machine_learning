@@ -101,7 +101,7 @@ class WGAN_clip(keras.Model):
             for var in self.discriminator.trainable_variables:
                 var.assign(tf.clip_by_value(var, -1.0, 1.0))
 
-        # Train Generator - MUST call get_fake_sample inside GradientTape context
+        # Train Generator - fake_sample inside tape context for auto-diff
         with tf.GradientTape() as gen_tape:
             fake_sample = self.get_fake_sample(training=True)
             disc_fake = self.discriminator(fake_sample, training=True)
