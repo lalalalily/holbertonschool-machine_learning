@@ -4,6 +4,17 @@ import tensorflow.keras as keras
 import tensorflow.keras.backend as K
 
 
+class KLLossLayer(keras.layers.Layer):
+    """Layer that computes and adds the KL divergence loss"""
+    def call(self, inputs):
+        """Adds the KL divergence loss and passes z through unchanged"""
+        z, mu, log_sig = inputs
+        kl_loss = 1 + log_sig - K.square(mu) - K.exp(log_sig)
+        kl_loss = -0.5 * K.sum(kl_loss, axis=-1)
+        self.add_loss(K.mean(kl_loss))
+        return z
+
+
 def autoencoder(input_dims, hidden_layers, latent_dims):
     """Creates a variational autoencoder
     input_dims is an integer containing the dimensions of the model
@@ -47,12 +58,9 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     decoder = keras.Model(decoder_inputs, decoder_outputs)
 
     z, mu, log_sig = encoder(encoder_inputs)
+    z = KLLossLayer()([z, mu, log_sig])
     auto_outputs = decoder(z)
     auto = keras.Model(encoder_inputs, auto_outputs)
-
-    kl_loss = 1 + log_sig - K.square(mu) - K.exp(log_sig)
-    kl_loss = -0.5 * K.sum(kl_loss, axis=-1)
-    auto.add_loss(K.mean(kl_loss))
 
     auto.compile(optimizer='adam', loss='binary_crossentropy')
 
