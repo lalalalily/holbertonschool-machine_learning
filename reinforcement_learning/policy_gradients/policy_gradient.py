@@ -1,19 +1,26 @@
-#!/usr/bin/env python3
-"""Simple policy function using softmax."""
-import numpy as np
-
-
-def policy(matrix, weight):
+def policy_gradient(state, weight):
     """
-    Computes the policy with a weight of a matrix.
+    Computes the Monte-Carlo policy gradient based on a state
+    and a weight matrix.
 
     Args:
-        matrix: state matrix
-        weight: weight matrix
+        state: matrix representing the current observation of
+            the environment
+        weight: matrix of random weight
 
     Returns:
-        the policy (probabilities of each action) as a numpy array
+        the action and the gradient (in this order)
     """
-    z = matrix.dot(weight)
-    exp = np.exp(z - np.max(z, axis=1, keepdims=True))
-    return exp / np.sum(exp, axis=1, keepdims=True)
+    state = state.reshape(1, -1)
+    probs = policy(state, weight)
+
+    action = np.random.choice(probs.shape[1], p=probs[0])
+
+    s = probs.reshape(-1, 1)
+    softmax_derivative = np.diagflat(s) - np.dot(s, s.T)
+
+    dlog = softmax_derivative[action] / probs[0, action]
+
+    gradient = state.T.dot(dlog.reshape(1, -1))
+
+    return action, gradient
