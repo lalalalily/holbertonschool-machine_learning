@@ -30,9 +30,14 @@ def monte_carlo(env, V, policy, episodes=5000, max_steps=100, alpha=0.1, gamma=0
                 break
 
         episode = np.array(episode, dtype=int)
+        states = episode[:, 0]
         G = 0
-        for state, reward in episode[::-1]:
+        for t in range(len(episode) - 1, -1, -1):
+            state, reward = episode[t]
             G = reward + gamma * G
-            V[state] = V[state] + alpha * (G - V[state])
+            # first-visit: only update if this is the first occurrence
+            # of `state` in the episode up to and including index t
+            if state not in states[:t]:
+                V[state] = V[state] + alpha * (G - V[state])
 
     return V
