@@ -1,52 +1,39 @@
 #!/usr/bin/env python3
-"""Full training with Monte-Carlo policy gradient (REINFORCE)."""
+"""Module containing policy gradient computation function."""
 import numpy as np
-policy_gradient = __import__('policy_gradient').policy_gradient
 
 
-def train(env, nb_episodes, alpha=0.000045, gamma=0.98):
-    """
-    Implements a full training.
+def policy(state, weight):
+    """Computes the softmax policy probabilities."""
+    z = np.dot(state, weight)
+    exp_z = np.exp(z - np.max(z))  # Stability shift
+    return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+
+def policy_gradient(state, weight):
+    """Computes the Monte-Carlo policy gradient for a given state and weight.
 
     Args:
-        env: initial environment
-        nb_episodes: number of episodes used for training
-        alpha: the learning rate
-        gamma: the discount factor
+        state: matrix of shape (1, n) or (n,) representing the environment state
+        weight: matrix of shape (n, m) representing current policy weights
 
     Returns:
-        all values of the score (sum of all rewards during one
-        episode loop)
+        action: the sampled action index
+        grad: matrix of shape (n, m) representing the weight gradient
     """
-    weight = np.random.rand(4, 2)
-    scores = []
+    probs = policy(state, weight)
+    
+    # Sample action according to computed probabilities
+    action = np.random.choice(len(probs[0]), p=probs[0])
 
-    for episode in range(nb_episodes):
-        state, _ = env.reset()
-        grads = []
-        rewards = []
-        score = 0
+    # Convert state to a 2D column vector (n, 1) if necessary
+    state_vec = np.asarray(state).reshape(-1, 1)
 
-        while True:
-            action, grad = policy_gradient(state, weight)
-            next_state, reward, done, truncated, _ = env.step(action)
+    # One-hot representation of chosen action
+    d_softmax = probs.copy()
+    d_softmax[0, action] -= 1
 
-            grads.append(grad)
-            rewards.append(reward)
-            score += reward
+    # Compute gradient: s^T * (probs - e_a)
+    grad = np.dot(state_vec, d_softmax)
 
-            state = next_state
-
-            if done or truncated:
-                break
-
-        for t, grad in enumerate(grads):
-            future_rewards = sum(
-                r * (gamma ** i) for i, r in enumerate(rewards[t:])
-            )
-            weight += alpha * grad * future_rewards
-
-        scores.append(score)
-        print("Episode: {} Score: {}".format(episode, score))
-
-    return scores
+    return action, grad
