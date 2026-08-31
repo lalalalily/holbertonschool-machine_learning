@@ -44,7 +44,6 @@ def monte_carlo(env, V, policy, episodes=5000, max_steps=100, alpha=0.1,
             state_t = episode_states[t]
             reward_t = episode_rewards[t]
             G = reward_t + gamma * G
-            if state_t not in episode_states[:t]:
-                V[state_t] = V[state_t] + alpha * (G - V[state_t])
+            V[state_t] = V[state_t] + alpha * (G - V[state_t])
 
     return V
